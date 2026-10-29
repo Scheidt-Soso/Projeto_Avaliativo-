@@ -6,6 +6,119 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Alegreya Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-display: 'Cinzel', Georgia, serif;
+}
+
+/* ---------- Tema: dark fantasy (roxo + dourado) ---------- */
+:root {
+    --bg: #12091f;
+    --bg-soft: #1b1030;
+    --surface: #241640;
+    --border: #3b2766;
+    --text: #e9e2f5;
+    --text-dim: #a99bc4;
+    --gold: #d9a441;
+    --gold-bright: #f2c76b;
+    --violet: #8b5cf6;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background:
+        radial-gradient(ellipse at top, var(--bg-soft) 0%, var(--bg) 60%) fixed;
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 1.125rem;
+    line-height: 1.6;
+}
+
+/* ---------- Cabeçalho ---------- */
+.site-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1rem clamp(1rem, 4vw, 3rem);
+    border-bottom: 1px solid var(--border);
+    background: rgb(18 9 31 / 0.85);
+    backdrop-filter: blur(6px);
+}
+
+.brand {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.25rem;
+    letter-spacing: 0.04em;
+    color: var(--gold);
+    text-decoration: none;
+}
+
+.site-nav {
+    display: flex;
+    gap: 1.25rem;
+}
+
+.site-nav a {
+    color: var(--text-dim);
+    text-decoration: none;
+    padding-bottom: 0.15rem;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.site-nav a:hover,
+.site-nav a.is-active {
+    color: var(--gold-bright);
+    border-bottom-color: var(--gold);
+}
+
+/* ---------- Conteúdo ---------- */
+.site-main {
+    flex: 1;
+    width: 100%;
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 3rem clamp(1rem, 4vw, 3rem);
+    box-sizing: border-box;
+}
+
+.site-footer {
+    padding: 1.25rem;
+    text-align: center;
+    font-size: 0.95rem;
+    color: var(--text-dim);
+    border-top: 1px solid var(--border);
+}
+
+/* ---------- Home ---------- */
+.hero {
+    max-width: 40rem;
+    padding: 4rem 0;
+}
+
+.hero-kicker {
+    margin: 0 0 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 0.85rem;
+    color: var(--violet);
+}
+
+.hero-title {
+    margin: 0 0 1rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(2.25rem, 6vw, 3.75rem);
+    line-height: 1.1;
+    color: var(--gold-bright);
+}
+
+.hero-text {
+    margin: 0;
+    color: var(--text-dim);
 }
