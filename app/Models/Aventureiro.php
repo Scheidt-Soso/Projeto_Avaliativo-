@@ -4,6 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+// nota: as models estão com uma base boa, apontam para o schema correto e tabela, 
+// possuem os campos fillable e timestamps, e possuem os relacionamentos corretos
+// o aventureiro com id = 103 foi criado com sucesso pelo tinker usando a model
+
 class Aventureiro extends Model
 {
     protected $table = 'rpg_trabalho_bd.aventureiros';
