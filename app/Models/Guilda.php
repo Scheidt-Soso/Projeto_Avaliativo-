@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Guilda extends Model
 {
-    protected $table = 'guildas';
+    protected $table = 'rpg_trabalho_bd.guildas';
 
     protected $fillable = [
         'nome',

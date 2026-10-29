@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Quest extends Model
 {
-    protected $table = 'quests';
+    protected $table = 'rpg_trabalho_bd.quests';
 
     protected $fillable = [
         'aventureiro_id',

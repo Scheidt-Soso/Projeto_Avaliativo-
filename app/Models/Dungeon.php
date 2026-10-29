@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Dungeon extends Model
 {
-    protected $table = 'dungeons';
+    protected $table = 'rpg_trabalho_bd.dungeons';
 
     protected $fillable = [
         'nome',
