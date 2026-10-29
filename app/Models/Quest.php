@@ -10,9 +10,13 @@ class Quest extends Model
 
     protected $fillable = [
         'aventureiro_id',
-        'dungeon_id',
-        'data_quest',
+        'dungeons_id',
+        'data_exploracao',
         'sucesso',
+    ];
+
+    protected $casts = [
+        'sucesso' => 'boolean',
     ];
 
     // isso serve para registrar que a tabela não possui os campos created_at e updated_at
@@ -27,6 +31,6 @@ class Quest extends Model
     // Relacionamento com a tabela Dungeon
     public function dungeon()
     {
-        return $this->belongsTo(Dungeon::class, 'dungeon_id');
+        return $this->belongsTo(Dungeon::class, 'dungeons_id');
     }
 }

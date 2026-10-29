@@ -16,4 +16,9 @@ class Guilda extends Model
 
     // isso serve para registrar que a tabela não possui os campos created_at e updated_at
     public $timestamps = false;
+
+    public function aventureiros()
+    {
+        return $this->hasMany(Aventureiro::class, 'guilda_id');
+    }
 }

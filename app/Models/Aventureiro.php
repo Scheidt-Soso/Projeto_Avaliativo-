@@ -16,7 +16,7 @@ class Aventureiro extends Model
         'nickname',
         'classe',
         'nivel',
-        'guild_id',
+        'guilda_id',
     ];
 
     // isso serve para registrar que a tabela não possui os campos created_at e updated_at
