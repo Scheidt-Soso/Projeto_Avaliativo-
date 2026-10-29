@@ -16,4 +16,9 @@ class Dungeon extends Model
 
     // isso serve para registrar que a tabela não possui os campos created_at e updated_at
     public $timestamps = false;
+
+    public function quests()
+    {
+        return $this->hasMany(Quest::class, 'dungeon_id');
+    }
 }

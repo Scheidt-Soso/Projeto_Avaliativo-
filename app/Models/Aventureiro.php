@@ -23,4 +23,9 @@ class Aventureiro extends Model
     {
         return $this->belongsTo(Guilda::class, 'guilda_id');
     }
+
+    public function quests()
+    {
+        return $this->hasMany(Quest::class, 'aventureiro_id');
+    }
 }
