@@ -6,5 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Guilda extends Model
 {
-    //
+    protected $table = 'guildas';
+
+    protected $fillable = [
+        'nome',
+        'nivel_minimo',
+        'data_fundacao',
+    ];
+
+    // isso serve para registrar que a tabela não possui os campos created_at e updated_at
+    public $timestamps = false;
 }
