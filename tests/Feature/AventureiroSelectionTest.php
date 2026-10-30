@@ -25,18 +25,18 @@ class AventureiroSelectionTest extends TestCase
 
     public function test_pagina_exibe_dados_e_guilda_do_banco(): void
     {
-        $this->get('/')->assertOk()->assertSee('Kaelthas')->assertSee('Lâminas Rubras')->assertSee('Lyriel')->assertSee('Sem guilda');
+        $this->get('/aventureiros')->assertOk()->assertSee('Kaelthas')->assertSee('Lâminas Rubras')->assertSee('Lyriel')->assertSee('Sem guilda');
     }
 
     public function test_busca_e_classe_sao_aplicadas_em_conjunto(): void
     {
-        $this->get('/?busca=KAEL&classe=Guerreiro')->assertOk()->assertSee('Kaelthas')->assertDontSee('Lyriel');
-        $this->get('/?busca=Kael&classe=Mago')->assertOk()->assertSee('Nenhum nome respondeu ao chamado.');
+        $this->get('/aventureiros?busca=KAEL&classe=Guerreiro')->assertOk()->assertSee('Kaelthas')->assertDontSee('Lyriel');
+        $this->get('/aventureiros?busca=Kael&classe=Mago')->assertOk()->assertSee('Nenhum nome respondeu ao chamado.');
     }
 
     public function test_busca_trata_curingas_como_texto_literal(): void
     {
-        $this->get('/?busca=%25')->assertOk()->assertSee('Nenhum nome respondeu ao chamado.')->assertDontSee('Kaelthas');
+        $this->get('/aventureiros?busca=%25')->assertOk()->assertSee('Nenhum nome respondeu ao chamado.')->assertDontSee('Kaelthas');
     }
 
     public function test_selecao_e_mantida_na_sessao_sem_modificar_o_personagem(): void
@@ -44,7 +44,7 @@ class AventureiroSelectionTest extends TestCase
         $antes = Aventureiro::findOrFail(1)->getAttributes();
         $this->post('/aventureiro/selecionar', ['aventureiro_id' => 1])
             ->assertRedirect(route('aventureiros.escolher'))->assertSessionHas('aventureiro_id', 1);
-        $this->get('/')->assertOk()->assertSee('Escolha salva nesta sessão')->assertSee('O destino tem um nome.');
+        $this->get('/aventureiros')->assertOk()->assertSee('Escolha salva nesta sessão')->assertSee('O destino tem um nome.');
         $this->assertSame($antes, Aventureiro::findOrFail(1)->getAttributes());
     }
 
@@ -57,7 +57,7 @@ class AventureiroSelectionTest extends TestCase
     public function test_retrato_pode_ser_personalizado_sem_mudar_a_classe(): void
     {
         config(['appearance.characters.1.portrait' => 'images/portraits/pedro.webp']);
-        $this->get('/')->assertOk()->assertSee('images/portraits/pedro.webp')->assertSee('Retrato de Kaelthas');
+        $this->get('/aventureiros')->assertOk()->assertSee('images/portraits/pedro.webp')->assertSee('Retrato de Kaelthas');
         $this->assertSame('Guerreiro', Aventureiro::findOrFail(1)->classe);
     }
 
@@ -66,9 +66,9 @@ class AventureiroSelectionTest extends TestCase
         for ($i = 0; $i < 13; $i++) {
             Aventureiro::create(['nickname' => 'Sentinela'.$i, 'classe' => 'Guerreiro', 'nivel' => 1]);
         }
-        $response = $this->get('/?busca=Sentinela&classe=Guerreiro');
+        $response = $this->get('/aventureiros?busca=Sentinela&classe=Guerreiro');
         $response->assertOk()->assertSee('busca=Sentinela&amp;classe=Guerreiro&amp;page=2', false);
-        $this->get('/?busca=Sentinela&classe=Guerreiro&page=2')->assertOk()->assertSee('Sentinela12')->assertDontSee('Sentinela0');
+        $this->get('/aventureiros?busca=Sentinela&classe=Guerreiro&page=2')->assertOk()->assertSee('Sentinela12')->assertDontSee('Sentinela0');
     }
 
     public function test_api_existente_lista_aventureiros_com_guilda_em_json(): void

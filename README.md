@@ -1,12 +1,27 @@
 # Coroa de Cinzas
 
-Aplicação do projeto bimestral de Banco de Dados II e Back-end, com Laravel 12, Blade, PostgreSQL no Neon e Vite/Tailwind. O jogo será centrado no banco original de guildas, aventureiros, dungeons e quests.
+Aplicação do projeto bimestral de Banco de Dados II e Back-end, com Laravel 12, Blade, PostgreSQL no Neon e Vite/Tailwind. O produto agora é um gerenciador de guildas, centrado no banco original de guildas, aventureiros, dungeons e quests.
 
-## Feature 1: seleção de aventureiro
+## Feature 2: quartel de guildas em preto e branco
 
-A página inicial consulta os aventureiros e suas guildas no schema `rpg_trabalho_bd`. Oferece busca por nickname, filtro de classe, paginação e escolha de personagem salva na sessão. As dez classes originais têm uma aparência provisória. Essa escolha não autentica o usuário nem modifica os registros do banco.
+A home agora é o painel da guilda: troca de guilda, membros com fichas, total de expedições, taxa de sucesso, XP conquistado e últimas quests. Todos os dados vêm das tabelas originais. O XP do painel soma as recompensas atuais das dungeons das quests bem-sucedidas dos membros atuais da guilda.
 
-A seleção de dungeon e a exploração serão implementadas nas próximas features.
+O quartel é desenhado e animado em canvas, com parallax, patrulheiros, bandeiras, tochas, portal e partículas. A tipografia VT323 é servida localmente, com sua licença OFL. Há pausa manual de animações e respeito a `prefers-reduced-motion`.
+
+O sorteio escolhe uma dungeon real no servidor, exige um membro da guilda e guarda o destino na sessão. **Sortear não registra uma quest nem muda o nível.** A execução da expedição com a procedure original será uma próxima feature, depois de fechar as regras de sucesso e de progressão. Nenhum objeto ou dado do Neon foi alterado nesta etapa.
+
+| Método | Rota | Função |
+| --- | --- | --- |
+| GET | `/?guilda=1` | Painel da guilda e histórico real. Sem parâmetro, abre a primeira guilda. |
+| POST | `/guildas/{guilda}/expedicao/sortear` | Sorteia uma dungeon para um membro da guilda, com CSRF e validação de pertença. |
+
+A estrutura atual de `quests` usa `dungeon_id` e `data_quest`; Models, API e Services foram ajustados a esses nomes. Consulte `docs/database-status.md` para os objetos encontrados no banco.
+
+## Feature 1: seleção de aventureiro (protótipo anterior em `/aventureiros`)
+
+A página `/aventureiros` consulta os aventureiros e suas guildas no schema `rpg_trabalho_bd`. Oferece busca por nickname, filtro de classe, paginação e escolha de personagem salva na sessão. As dez classes originais têm uma aparência provisória. Essa escolha não autentica o usuário nem modifica os registros do banco.
+
+O fluxo de escolha de personagem foi substituído na home pelo gerenciamento da guilda. A rota anterior foi mantida para preservar o trabalho já feito.
 
 ## Executar
 
@@ -32,10 +47,12 @@ Abra http://127.0.0.1:8000. Para desenvolver com atualização dos assets, execu
 
 | Método | Rota | Função |
 | --- | --- | --- |
-| GET | `/` | Lista, busca, filtra e pagina os aventureiros. |
+| GET | `/aventureiros` | Lista, busca, filtra e pagina os aventureiros do protótipo anterior. |
 | POST | `/aventureiro/selecionar` | Valida `aventureiro_id` e salva a escolha na sessão, com proteção CSRF. |
 
 As rotas REST existentes de `/api/aventureiros`, `/api/guildas`, `/api/dungeons` e `/api/quests` foram preservadas.
+
+Para acompanhar as alterações ao vivo, mantenha `php artisan serve` e `npm run dev -- --host 127.0.0.1` abertos em terminais separados.
 
 ## Testes
 
