@@ -18,12 +18,12 @@ class QuestService extends CrudService
     }
 
     /**
-     * O jogo manda só o resultado da run; a data é a de hoje se não vier.
-     * (XP e nível do aventureiro serão atualizados pelo banco, via trigger.)
+     * O CRUD registra a quest com a data de hoje quando ela não é informada.
+     * A progressão de nível pertence à procedure de expedição, não a este CRUD.
      */
     public function criar(array $dados): Model
     {
-        $dados['data_exploracao'] ??= now()->toDateString();
+        $dados['data_quest'] ??= now()->toDateString();
 
         return parent::criar($dados);
     }

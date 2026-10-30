@@ -24,13 +24,13 @@ class QuestController extends Controller
         return QuestResource::collection($this->service->listar());
     }
 
-    /** O jogo chama esta rota ao fim de cada run. */
+    /** Registra o resultado de uma expedição pela API. */
     public function store(Request $request): QuestResource
     {
         $dados = $request->validate([
             'aventureiro_id' => ['required', 'integer', Rule::exists(Aventureiro::class, 'id')],
-            'dungeons_id' => ['required', 'integer', Rule::exists(Dungeon::class, 'id')],
-            'data_exploracao' => ['nullable', 'date'],
+            'dungeon_id' => ['required', 'integer', Rule::exists(Dungeon::class, 'id')],
+            'data_quest' => ['nullable', 'date'],
             'sucesso' => ['required', 'boolean'],
         ]);
 
@@ -46,8 +46,8 @@ class QuestController extends Controller
     {
         $dados = $request->validate([
             'aventureiro_id' => ['sometimes', 'required', 'integer', Rule::exists(Aventureiro::class, 'id')],
-            'dungeons_id' => ['sometimes', 'required', 'integer', Rule::exists(Dungeon::class, 'id')],
-            'data_exploracao' => ['sometimes', 'required', 'date'],
+            'dungeon_id' => ['sometimes', 'required', 'integer', Rule::exists(Dungeon::class, 'id')],
+            'data_quest' => ['sometimes', 'required', 'date'],
             'sucesso' => ['sometimes', 'required', 'boolean'],
         ]);
 

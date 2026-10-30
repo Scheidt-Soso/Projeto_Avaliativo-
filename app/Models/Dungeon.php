@@ -19,6 +19,6 @@ class Dungeon extends Model
 
     public function quests()
     {
-        return $this->hasMany(Quest::class, 'dungeons_id');
+        return $this->hasMany(Quest::class, 'dungeon_id');
     }
 }
