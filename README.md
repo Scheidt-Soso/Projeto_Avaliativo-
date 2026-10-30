@@ -1,59 +1,62 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Coroa de Cinzas
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplicação do projeto bimestral de Banco de Dados II e Back-end, com Laravel 12, Blade, PostgreSQL no Neon e Vite/Tailwind. O jogo será centrado no banco original de guildas, aventureiros, dungeons e quests.
 
-## About Laravel
+## Feature 1: seleção de aventureiro
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+A página inicial consulta os aventureiros e suas guildas no schema `rpg_trabalho_bd`. Oferece busca por nickname, filtro de classe, paginação e escolha de personagem salva na sessão. As dez classes originais têm uma aparência provisória. Essa escolha não autentica o usuário nem modifica os registros do banco.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+A seleção de dungeon e a exploração serão implementadas nas próximas features.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Executar
 
-## Learning Laravel
+Requisitos: PHP 8.2 ou superior com `pdo_pgsql`, `mbstring`, `openssl`, `fileinfo`, `curl` e `zip`; Composer; Node.js compatível com o Vite 7.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+```powershell
+composer install
+npm install
+Copy-Item .env.example .env
+php artisan key:generate
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Configure no `.env` as credenciais do banco original: `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` e `DB_SSLMODE`. As models já apontam para o schema `rpg_trabalho_bd`. Use `SESSION_DRIVER=file`, `CACHE_STORE=file` e `QUEUE_CONNECTION=sync` para esta etapa.
 
-## Laravel Sponsors
+```powershell
+npm run build
+php artisan serve --host=127.0.0.1 --port=8000
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Abra http://127.0.0.1:8000. Para desenvolver com atualização dos assets, execute `npm run dev` em outro terminal. No ambiente preparado nesta máquina, o PHP portátil está em `.tools/php/php.exe` e o Composer em `.tools/composer.phar`; essa pasta é local e ignorada pelo Git.
 
-### Premium Partners
+## Rotas desta feature
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+| Método | Rota | Função |
+| --- | --- | --- |
+| GET | `/` | Lista, busca, filtra e pagina os aventureiros. |
+| POST | `/aventureiro/selecionar` | Valida `aventureiro_id` e salva a escolha na sessão, com proteção CSRF. |
 
-## Contributing
+As rotas REST existentes de `/api/aventureiros`, `/api/guildas`, `/api/dungeons` e `/api/quests` foram preservadas.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Testes
 
-## Code of Conduct
+```powershell
+php artisan test
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+É necessária a extensão `pdo_sqlite`. A suíte de seleção usa exclusivamente SQLite em memória com um schema anexado chamado `rpg_trabalho_bd`; não usa nem modifica o Neon. Verifica listagem, busca combinada com classe, curingas literais, paginação, seleção persistida, rejeição de IDs inválidos, retrato independente da classe e regressões de consulta da API.
 
-## Security Vulnerabilities
+## Aparências e futuras fotos
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+`config/appearance.php` associa cada classe a uma região do atlas. O componente Blade `adventurer-art` renderiza a aparência sem adicionar colunas às tabelas originais.
 
-## License
+Para uma futura imagem própria, coloque o arquivo na pasta `public/images/portraits/` e configure o ID do aventureiro:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```php
+'characters' => [
+    42 => ['portrait' => 'images/portraits/pedro.webp'],
+],
+```
+
+O retrato substitui apenas a imagem daquele aventureiro. Classe, nível e guilda continuam vindo do banco. Nesta entrega não há upload de fotos ou editor de skins; variações de sprites com fotos serão uma feature separada.
+
+A origem e os prompts das imagens provisórias estão em `docs/visual-assets.md`.
