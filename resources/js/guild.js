@@ -1,4 +1,5 @@
 import { mountGuildScene } from './guild-scene';
+import { mountMemberRoster } from './member-roster';
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const canvas = document.querySelector('#guild-scene');
@@ -36,6 +37,7 @@ document.querySelectorAll('dialog').forEach((dialog) => {
 
 let selectedMemberId;
 const memberDialog = document.querySelector('.member-dialog');
+const cleanupRoster = mountMemberRoster(document.querySelector('[data-member-roster]'));
 document.querySelectorAll('[data-member-id]').forEach((button) => button.addEventListener('click', () => {
     selectedMemberId = button.dataset.memberId;
     ['name', 'class', 'level', 'quests'].forEach((field) => {
@@ -109,4 +111,4 @@ if (typewriter && !paused && !reducedMotion.matches) {
     typeNext();
     window.addEventListener('pagehide', () => clearTimeout(typewriterTimer), { once: true });
 }
-if (import.meta.hot) import.meta.hot.dispose(() => { cleanupScene(); observer.disconnect(); clearTimeout(typewriterTimer); });
+if (import.meta.hot) import.meta.hot.dispose(() => { cleanupScene(); cleanupRoster(); observer.disconnect(); clearTimeout(typewriterTimer); });

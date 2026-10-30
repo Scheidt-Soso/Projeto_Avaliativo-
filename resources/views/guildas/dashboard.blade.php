@@ -36,11 +36,7 @@
             <div class="dashboard-grid">
                 <div class="main-column">
                     @include('guildas.partials.headquarters')
-                    <section class="members-section" id="membros" aria-labelledby="members-title"><div class="section-heading"><h2 id="members-title"><span class="section-number">02</span> QUEM CARREGA A BANDEIRA</h2><span class="section-caption">{{ $resumo['membros'] }} MEMBROS</span></div><div class="member-table-wrap"><table class="member-table"><thead><tr><th>AVENTUREIRO</th><th>CLASSE</th><th>NÍVEL</th><th><span class="sr-only">Ações</span></th></tr></thead><tbody>
-                        @forelse ($guilda?->aventureiros ?? [] as $member)
-                        <tr><td><div class="member-identity"><span class="member-avatar"><x-member-sigil :member="$member" /></span><div><strong>{{ $member->nickname }}</strong><small>REGISTRO #{{ str_pad($member->id, 3, '0', STR_PAD_LEFT) }}</small></div></div></td><td><span class="class-tag">{{ $member->classe }}</span></td><td><span class="member-level">{{ str_pad($member->nivel, 2, '0', STR_PAD_LEFT) }}</span></td><td><button class="member-action" type="button" data-member-name="{{ $member->nickname }}" data-member-id="{{ $member->id }}" data-member-class="{{ $member->classe }}" data-member-level="{{ $member->nivel }}" data-member-quests="{{ $member->quests_count ?? 0 }}" aria-label="Ver ficha de {{ $member->nickname }}">FICHA <x-pixel-icon name="arrow" /></button></td></tr>
-                        @empty<tr><td colspan="4" class="empty-copy">* Esta bandeira ainda aguarda seus primeiros aventureiros.</td></tr>@endforelse
-                    </tbody></table></div></section>
+                    @include('guildas.partials.members')
                 </div>
                 <div class="side-column">
                     <section class="expedition-panel panel" id="expedicoes" aria-labelledby="expedition-title"><div class="panel-heading"><h2><span class="section-number">03</span> EXPEDIÇÃO ALEATÓRIA</h2><x-pixel-icon name="dice" /></div><div class="expedition-content"><div class="portal-emblem" aria-hidden="true"><span class="portal-orbit"></span><x-pixel-icon name="door" /><span class="portal-spark portal-spark--one">+</span><span class="portal-spark portal-spark--two">+</span><span class="portal-spark portal-spark--three">·</span></div><h3 id="expedition-title">A masmorra chama.</h3><p class="expedition-intro">Você escolhe quem vai.<br>O destino escolhe o caminho.</p>
