@@ -8,6 +8,8 @@ A home agora é o painel da guilda: troca de guilda, membros com fichas, total d
 
 O quartel é desenhado e animado em canvas, com parallax, patrulheiros, bandeiras, tochas, portal e partículas. A tipografia VT323 é servida localmente, com sua licença OFL. Há pausa manual de animações e respeito a `prefers-reduced-motion`.
 
+Cada guilda original possui um nome de quartel, região e mensagem próprios, definidos em `config/guild-bases.php`. Guildas novas recebem um perfil padrão; a identidade visual não altera o banco.
+
 O sorteio escolhe uma dungeon real no servidor, exige um membro da guilda e guarda o destino na sessão. **Sortear não registra uma quest nem muda o nível.** A execução da expedição com a procedure original será uma próxima feature, depois de fechar as regras de sucesso e de progressão. Nenhum objeto ou dado do Neon foi alterado nesta etapa.
 
 | Método | Rota | Função |

@@ -47,6 +47,20 @@ class GuildDashboardTest extends TestCase
         $this->get('/')->assertOk()->assertViewHas('guilda', fn ($guilda) => $guilda->id === 1);
     }
 
+    public function test_cada_guilda_exibe_sua_identidade_de_quartel(): void
+    {
+        $this->get('/?guilda=1')->assertOk()->assertSee('Bastião das Lâminas')->assertSee('data-biome="ashlands"', false);
+        $this->get('/?guilda=2')->assertOk()->assertSee('Vigília de Ônix')->assertSee('data-biome="mistlands"', false)
+            ->assertDontSee('Bastião das Lâminas');
+    }
+
+    public function test_guilda_nova_recebe_base_padrao_sem_modificar_seus_dados(): void
+    {
+        $guilda = Guilda::create(['nome' => 'Nova Bandeira', 'nivel_minimo' => 1]);
+        $this->get('/?guilda='.$guilda->id)->assertOk()->assertSee('Refúgio dos Viajantes');
+        $this->assertSame('Nova Bandeira', $guilda->fresh()->nome);
+    }
+
     public function test_guilda_sem_membros_tem_resumo_vazio(): void
     {
         $guilda = Guilda::create(['nome' => 'Bandeira Solitária', 'nivel_minimo' => 1]);
