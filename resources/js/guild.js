@@ -1,5 +1,6 @@
 import { mountGuildScene } from './guild-scene';
 import { mountMemberRoster } from './member-roster';
+import { mountDungeonAtlas } from './dungeon-atlas';
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const canvas = document.querySelector('#guild-scene');
@@ -26,6 +27,9 @@ motionButton?.addEventListener('click', () => {
 });
 
 document.querySelector('[data-open-guilds]')?.addEventListener('click', () => document.querySelector('.guild-picker')?.showModal());
+const atlasDialog = document.querySelector('[data-dungeon-atlas]');
+const cleanupAtlas = mountDungeonAtlas(atlasDialog);
+document.querySelector('[data-open-atlas]')?.addEventListener('click', () => atlasDialog?.showModal());
 document.querySelectorAll('[data-close-dialog]').forEach((button) => button.addEventListener('click', () => button.closest('dialog').close()));
 document.querySelectorAll('dialog').forEach((dialog) => {
     dialog.addEventListener('click', (event) => {
@@ -111,4 +115,4 @@ if (typewriter && !paused && !reducedMotion.matches) {
     typeNext();
     window.addEventListener('pagehide', () => clearTimeout(typewriterTimer), { once: true });
 }
-if (import.meta.hot) import.meta.hot.dispose(() => { cleanupScene(); cleanupRoster(); observer.disconnect(); clearTimeout(typewriterTimer); });
+if (import.meta.hot) import.meta.hot.dispose(() => { cleanupScene(); cleanupRoster(); cleanupAtlas(); observer.disconnect(); clearTimeout(typewriterTimer); });

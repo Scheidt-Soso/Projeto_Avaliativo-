@@ -68,6 +68,27 @@ class GuildDashboardTest extends TestCase
             ->assertViewHas('resumo', ['membros' => 0, 'quests' => 0, 'sucessos' => 0, 'xp' => 0]);
     }
 
+    public function test_atlas_conta_somente_tentativas_e_vitorias_da_guilda_atual(): void
+    {
+        $this->get('/?guilda=1')->assertOk()->assertViewHas('dungeons', function ($dungeons) {
+            $cripta = $dungeons->firstWhere('id', 1);
+            $torre = $dungeons->firstWhere('id', 2);
+
+            return $cripta->guild_attempts_count === 1 && $cripta->guild_successes_count === 1
+                && $torre->guild_attempts_count === 1 && $torre->guild_successes_count === 0;
+        });
+        $this->get('/?guilda=2')->assertOk()->assertViewHas('dungeons', fn ($dungeons) =>
+            $dungeons->firstWhere('id', 1)->guild_attempts_count === 0
+            && $dungeons->firstWhere('id', 2)->guild_successes_count === 1);
+    }
+
+    public function test_atlas_sem_dungeons_mostra_estado_vazio(): void
+    {
+        Quest::query()->delete();
+        Dungeon::query()->delete();
+        $this->get('/')->assertOk()->assertSee('O atlas está em branco.')->assertViewHas('dungeons', fn ($dungeons) => $dungeons->isEmpty());
+    }
+
     public function test_sorteio_usa_dungeon_real_sem_mudar_nivel_ou_criar_quest(): void
     {
         $antes = Aventureiro::findOrFail(1)->getAttributes();

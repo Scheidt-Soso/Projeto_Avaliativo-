@@ -12,6 +12,8 @@ Cada guilda original possui nome de quartel, região e mensagem próprios, defin
 
 O elenco permite buscar por nome, combinar a classe e ordenar por nível, nome ou número de expedições. Os filtros atuam nos membros já carregados e não alteram os totais do painel nem a lista de envio para expedições. Sem JavaScript, a listagem completa continua disponível.
 
+O botão **Consultar atlas** mostra as dungeons do banco com dificuldade, recompensa e vitórias/tentativas da guilda atual. É possível buscar, filtrar dificuldade, ordenar por XP e destacar destinos ainda não explorados. Esses números descrevem o histórico, não a chance de vitória futura.
+
 O sorteio escolhe uma dungeon real no servidor, exige um membro da guilda e guarda o destino na sessão. **Sortear não registra uma quest nem muda o nível.** A execução da expedição com a procedure original será uma próxima feature, depois de fechar as regras de sucesso e de progressão. Nenhum objeto ou dado do Neon foi alterado nesta etapa.
 
 | Método | Rota | Função |
