@@ -1,3 +1,5 @@
+set search_path to rpg_trabalho_bd;
+
 -- soma o xp de todas as quests de um aventureiro
 create or replace function fn_total_xp(p_aventureiro_id integer)
 returns bigint
