@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Aventureiro;
+use Illuminate\Support\Facades\Hash;
 
 class LoginService
 {
@@ -17,5 +18,4 @@ class LoginService
         ]);
     }
 
-    
 }
