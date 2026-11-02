@@ -2,6 +2,20 @@
 
 Aplicação do projeto bimestral de Banco de Dados II e Back-end, com Laravel 12, Blade, PostgreSQL no Neon e Vite/Tailwind. O produto agora é um gerenciador de guildas, centrado no banco original de guildas, aventureiros, dungeons e quests.
 
+## Autenticação
+
+O login usa `nickname` e `senha` da própria tabela `rpg_trabalho_bd.aventureiros`. A model é o usuário da sessão Laravel; não é preciso criar uma conta em `users`, adicionar e-mail, token de permanência ou executar migrations. Senhas são verificadas por hash, nunca devolvidas em JSON ou mantidas no formulário após erro. Entrar renova a sessão; sair invalida a sessão e as seleções anteriores.
+
+O cadastro integrado da `feature/dudu` cria um aventureiro com senha protegida por hash, nível 1, papel `jogador` e sem guilda. Campos extras enviados pelo cliente não permitem escolher nível, guilda ou papel administrativo. As classes sugeridas vêm dos aventureiros cadastrados. Os aventureiros antigos sem senha não podem entrar; esta implementação não atribui senhas padrão nem redefine contas existentes.
+
+| Método | Rota | Função |
+| --- | --- | --- |
+| GET / POST | `/login` | Formulário e entrada por nickname e senha. Cinco falhas por nickname/IP bloqueiam novas tentativas por um minuto. |
+| GET / POST | `/register` | Formulário e cadastro de aventureiro. |
+| POST | `/logout` | Encerra a sessão, com proteção CSRF. |
+
+O painel e o protótipo de seleção exigem login. A API usa a mesma sessão por Sanctum para chamadas do próprio site; `/api/user` devolve a conta autenticada sem a senha. Na aplicação, `jogador` pode consultar os cadastros e `admin` pode criar, editar e excluir. O papel vem do banco, que aceita somente esses dois valores. Não há promoção de usuário pelo cadastro público. Para desenvolvimento em outro domínio/porta, configure `SANCTUM_STATEFUL_DOMAINS` e envie os cookies e o token CSRF.
+
 ## Feature 2: quartel de guildas em preto e branco
 
 A home agora é o painel da guilda: troca de guilda, membros com fichas, total de expedições, taxa de sucesso, XP conquistado e últimas quests. Todos os dados vêm das tabelas originais. O XP do painel soma as recompensas atuais das dungeons das quests bem-sucedidas dos membros atuais da guilda.
@@ -56,7 +70,7 @@ Abra http://127.0.0.1:8000. Para desenvolver com atualização dos assets, execu
 | GET | `/aventureiros` | Lista, busca, filtra e pagina os aventureiros do protótipo anterior. |
 | POST | `/aventureiro/selecionar` | Valida `aventureiro_id` e salva a escolha na sessão, com proteção CSRF. |
 
-As rotas REST existentes de `/api/aventureiros`, `/api/guildas`, `/api/dungeons` e `/api/quests` foram preservadas.
+As rotas REST de `/api/aventureiros`, `/api/guildas`, `/api/dungeons` e `/api/quests` exigem autenticação; alterações exigem papel `admin`.
 
 Para acompanhar as alterações ao vivo, mantenha `php artisan serve` e `npm run dev -- --host 127.0.0.1` abertos em terminais separados.
 
@@ -66,7 +80,7 @@ Para acompanhar as alterações ao vivo, mantenha `php artisan serve` e `npm run
 php artisan test
 ```
 
-É necessária a extensão `pdo_sqlite`. A suíte de seleção usa exclusivamente SQLite em memória com um schema anexado chamado `rpg_trabalho_bd`; não usa nem modifica o Neon. Verifica listagem, busca combinada com classe, curingas literais, paginação, seleção persistida, rejeição de IDs inválidos, retrato independente da classe e regressões de consulta da API.
+É necessária a extensão `pdo_sqlite`. As suítes usam SQLite em memória com um schema anexado chamado `rpg_trabalho_bd`; não usam nem modificam o Neon. Cobrem autenticação, cadastro, limitação de tentativas, sigilo da senha, renovação/invalidação da sessão, permissões da API, listagem, filtros, paginação, escolha explícita de dungeon e regressões do painel.
 
 ## Aparências e futuras fotos
 

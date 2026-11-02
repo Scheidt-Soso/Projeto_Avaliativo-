@@ -5,16 +5,17 @@ use App\Http\Controllers\Web\GuildDashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\LoginController;
 
-Route::get('/', [GuildDashboardController::class, 'index'])->name('guildas.dashboard');
-Route::post('/guildas/{guilda}/expedicao/selecionar', [GuildDashboardController::class, 'selecionarDestino'])->name('guildas.expedicao.selecionar');
-Route::get('/aventureiros', [AventureiroController::class, 'index'])->name('aventureiros.escolher');
-Route::post('/aventureiro/selecionar', [AventureiroController::class, 'selecionar'])->name('aventureiros.selecionar');
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
+    Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:30,1')->name('login.store');
+    Route::get('/register', [LoginController::class, 'showRegister'])->name('register');
+    Route::post('/register', [LoginController::class, 'register'])->middleware('throttle:6,1')->name('register.store');
+});
 
-// Rotas públicas
-Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
-Route::post('/login', [LoginController::class, 'login'])->name('login.store');
-
-Route::get('/register', [LoginController::class, 'showRegister'])->name('register');
-Route::post('/register', [LoginController::class, 'register'])->name('register.store');
-
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::middleware('auth')->group(function () {
+    Route::get('/', [GuildDashboardController::class, 'index'])->name('guildas.dashboard');
+    Route::post('/guildas/{guilda}/expedicao/selecionar', [GuildDashboardController::class, 'selecionarDestino'])->name('guildas.expedicao.selecionar');
+    Route::get('/aventureiros', [AventureiroController::class, 'index'])->name('aventureiros.escolher');
+    Route::post('/aventureiro/selecionar', [AventureiroController::class, 'selecionar'])->name('aventureiros.selecionar');
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+});

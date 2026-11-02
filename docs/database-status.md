@@ -9,6 +9,8 @@ Estrutura conferida em consulta somente leitura em 02/11/2026. Nenhuma migration
 - `rpg_trabalho_bd.dungeons`: id, nome, dificuldade, xp_recompensa.
 - `rpg_trabalho_bd.quests`: id, aventureiro_id, **dungeon_id**, **data_quest**, sucesso.
 
+O acesso usa `aventureiros.nickname` (único, até 50 caracteres), `senha` (até 255 caracteres, permite nulo) e `role` (obrigatório, padrão `jogador`, CHECK para `admin`/`jogador`). Na consulta havia 102 aventureiros sem senha e um com hash bcrypt. Nenhuma credencial foi criada, exposta ou redefinida durante a auditoria.
+
 O PDF anterior usava `dungeons_id` e `data_exploracao`. A aplicação foi alinhada aos nomes atuais. A API de quests agora recebe e devolve `dungeon_id` e `data_quest`.
 
 ## Recursos encontrados

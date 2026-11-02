@@ -12,8 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->redirectGuestsTo(fn () => route('login'));
+        $middleware->redirectUsersTo(fn () => route('guildas.dashboard'));
+        $middleware->trimStrings(except: ['senha', 'senha_confirmation']);
+        $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->dontFlash(['senha', 'senha_confirmation']);
     })->create();

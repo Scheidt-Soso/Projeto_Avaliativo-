@@ -11,8 +11,9 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-// CRUD REST das 4 tabelas (GET/POST /api/guildas, GET/PUT/DELETE /api/guildas/{guilda}, ...)
-Route::apiResource('guildas', GuildaController::class);
-Route::apiResource('aventureiros', AventureiroController::class);
-Route::apiResource('dungeons', DungeonController::class);
-Route::apiResource('quests', QuestController::class);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('guildas', GuildaController::class)->middlewareFor(['store', 'update', 'destroy'], 'can:gerenciar-cadastros');
+    Route::apiResource('aventureiros', AventureiroController::class)->middlewareFor(['store', 'update', 'destroy'], 'can:gerenciar-cadastros');
+    Route::apiResource('dungeons', DungeonController::class)->middlewareFor(['store', 'update', 'destroy'], 'can:gerenciar-cadastros');
+    Route::apiResource('quests', QuestController::class)->middlewareFor(['store', 'update', 'destroy'], 'can:gerenciar-cadastros');
+});
