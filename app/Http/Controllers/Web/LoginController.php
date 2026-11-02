@@ -62,7 +62,7 @@ class LoginController extends Controller
             'classe' => ['required', 'string', 'max:50'],
             'senha' => ['bail', 'required', 'string', 'min:6', 'confirmed', function (string $attribute, mixed $value, \Closure $fail) {
                 if (strlen($value) > 72) {
-                    $fail('A senha deve ter no máximo 72 bytes.');
+                    $fail('A senha é muito longa. Use uma senha mais curta.');
                 }
             }],
         ], [

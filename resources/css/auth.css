@@ -1,0 +1,65 @@
+@import './guild.css';
+@source '../views/jogador/*.blade.php';
+@source '../views/components/auth-shell.blade.php';
+
+.auth-page { min-height: 100svh; padding: 24px; display: grid; align-items: center; }
+.auth-frame { width: 100%; max-width: 1260px; margin: auto; border: 1px solid #363636; background: #0b0b0b; position: relative; }
+.auth-frame::before, .auth-frame::after { content: '+'; font: 16px var(--mono); color: #9c9c96; position: absolute; left: -5px; top: -13px; }
+.auth-frame::after { top: auto; left: auto; bottom: -12px; right: -5px; }
+.auth-header { display: flex; align-items: center; gap: 25px; padding: 0 34px; border-bottom: 1px solid #303030; min-height: 106px; }
+.auth-header .wordmark { display: flex; padding: 20px 0; }
+.auth-header .wordmark > span:last-child { display: block; }
+.auth-header .motion-toggle span { display: inline; }
+.auth-edition { font-size: 8px; letter-spacing: 1px; color: #93938b; margin-left: auto; }
+.auth-edition span { color: #5a5a55; padding: 0 12px; }
+.auth-header .motion-toggle { padding-left: 22px; border-left: 1px solid #3c3c38; min-height: 20px; }
+.auth-content { display: grid; grid-template-columns: 1.2fr 1fr; max-width: none; margin: 0; padding: 0; }
+.auth-world { min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: 52px 34px 35px; border-right: 1px solid #303030; background: #080808; }
+.auth-world-caption { display: flex; justify-content: space-between; gap: 10px; font-size: 8px; color: #8d8d85; letter-spacing: 1.7px; padding: 0 14px; }
+.auth-world-caption > span:last-child { color: #ccc; font-size: 14px; line-height: 1; }
+.auth-art { position: relative; margin: 32px 0 24px; }
+.auth-art canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+.auth-art .scene-corner { width: 16px; height: 16px; opacity: .7; }
+.auth-quote { display: flex; justify-content: center; align-items: flex-start; gap: 15px; padding: 8px 20px 38px; }
+.auth-quote .pixel-icon { width: 14px; margin-top: 4px; }
+.auth-quote p { font: 30px/1.2 var(--pixel); color: #b9b9b1; }
+.auth-quote p span { color: var(--paper); }
+.auth-world-footer { display: flex; justify-content: space-between; align-items: center; gap: 15px; border-top: 1px solid #272727; padding-top: 20px; font-size: 7px; letter-spacing: 1px; color: #808078; }
+.auth-world-footer > span:last-child { font: 19px var(--pixel); color: #b8b8ad; }
+.auth-entry { padding: 55px 42px 44px; min-width: 0; align-self: center; }
+.auth-entry .eyebrow { font-size: 8px; letter-spacing: 1px; }
+.auth-entry h1 { font-size: clamp(40px, 4vw, 56px); line-height: 1; margin: 17px 0 12px; letter-spacing: -.5px; }
+.auth-entry .cursor-mark { margin-left: 3px; }
+.auth-intro { font-size: 10px; color: #a3a39b; margin-bottom: 30px; line-height: 1.8; }
+.auth-label { display: flex; align-items: baseline; gap: 10px; font-size: 9px; letter-spacing: 1.4px; margin-bottom: 9px; color: #c3c3ba; }
+.auth-label > span { font-size: 8px; color: #787870; }
+.auth-label small { font-size: 7px; color: #99998f; margin-left: auto; letter-spacing: 0; }
+.auth-input { display: block; width: 100%; min-width: 0; min-height: 47px; border: 1px solid #55554f; border-radius: 0; background: #0b0b0b; padding: 13px 12px; margin-bottom: 23px; font: 11px/1.5 var(--mono); transition: border-color .15s, background .15s; }
+.auth-input::placeholder { color: #7e7e77; font-size: 10px; }
+.auth-input:focus { outline: 1px solid var(--paper); outline-offset: 3px; border-color: var(--paper); background: #111; }
+.auth-input[aria-invalid="true"] { border-style: dashed; border-color: var(--paper); }
+.auth-input:-webkit-autofill { -webkit-text-fill-color: var(--paper); box-shadow: 0 0 0 100px #171717 inset; caret-color: white; }
+.auth-password { position: relative; }
+.auth-password .auth-input { padding-right: 76px; }
+.password-toggle { position: absolute; top: 8px; right: 7px; min-width: 39px; min-height: 31px; background: #202020; color: #c5c5bc; border: 0; font: 15px var(--pixel); padding: 4px 7px; }
+.password-toggle:hover { color: white; background: #333; }
+.auth-submit { margin-top: 7px; padding: 13px 15px; min-height: 47px; font-size: 22px; }
+.auth-alternative { border-top: 1px solid #353530; margin-top: 27px; padding-top: 20px; }
+.auth-alternative > span { display: block; color: #96968e; font-size: 7px; letter-spacing: 1.1px; margin-bottom: 11px; }
+.auth-alternative a { display: flex; justify-content: space-between; align-items: center; font: 22px var(--pixel); }
+.auth-alternative a:hover { text-decoration: underline; text-underline-offset: 5px; }
+.auth-alternative a span { font: 15px var(--mono); color: #aaa; }
+.auth-feedback { display: flex; gap: 10px; align-items: flex-start; padding: 12px; margin-bottom: 22px; border: 1px solid #68685f; background: #181818; font-size: 10px; line-height: 1.7; }
+.auth-feedback .pixel-icon { width: 12px; height: 12px; margin-top: 3px; }
+.auth-feedback--error { border-style: dashed; }
+.auth-field-pair { display: grid; grid-template-columns: 1.1fr 1fr; gap: 14px; }
+.auth-footer { display: flex; justify-content: space-between; gap: 15px; padding: 21px 34px; border-top: 1px solid #303030; color: #93938a; font-size: 7px; letter-spacing: 1px; }
+.auth-footer > span:first-child { display: flex; align-items: center; gap: 9px; }
+.auth-footer .pixel-icon { width: 10px; height: 10px; }
+.auth-footer > span:last-child > span { padding: 0 9px; color: #777; }
+[hidden] { display: none !important; }
+
+@media (min-width: 1400px) { .auth-content { min-height: 580px; } .auth-entry { padding-left: 55px; padding-right: 55px; } }
+@media (max-width: 1000px) { .auth-content { grid-template-columns: 1fr 1fr; } .auth-header { padding-inline: 25px; gap: 15px; } .auth-entry { padding: 40px 26px; } .auth-world { padding-inline: 20px; } .auth-edition { display: none; } .auth-header .motion-toggle { margin-left: auto; } .auth-label small { font-size: 6px; } }
+@media (max-width: 700px) { .auth-page { padding: 14px; align-items: start; } .auth-header { min-height: 84px; padding: 0 20px; } .auth-header .wordmark { font-size: 21px; gap: 8px; } .auth-header .wordmark small { font-size: 6px; } .auth-header .wordmark-icon .pixel-icon { width: 24px; height: 30px; } .auth-header .motion-toggle { padding-left: 14px; font-size: 7px; max-width: 100px; text-align: left; } .auth-content { display: flex; flex-direction: column; } .auth-world { order: 2; padding: 24px 20px 20px; border-right: 0; border-top: 1px solid #303030; } .auth-world-caption { font-size: 7px; } .auth-art { max-width: 430px; width: 100%; margin: 20px auto 12px; } .auth-quote { padding-bottom: 24px; } .auth-quote p { font-size: 25px; } .auth-world-footer { padding-top: 14px; } .auth-entry { width: 100%; padding: 35px 24px; } .auth-entry h1 { font-size: 46px; } .auth-intro { margin-bottom: 26px; } .auth-footer { padding: 17px 20px; flex-wrap: wrap; font-size: 6px; } }
+@media (max-width: 380px) { .auth-entry { padding-inline: 17px; } .auth-entry h1 { font-size: 38px; } .auth-field-pair { grid-template-columns: 1fr; gap: 0; } .auth-header { padding-inline: 15px; } }
