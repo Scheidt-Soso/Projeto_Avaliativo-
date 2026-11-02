@@ -36,3 +36,9 @@ where aventureiro_id = 1
 
 -- testando a procedure vincular_aventureiro_guilda
 call pr_vincular_aventureiro_guilda(5, 4);
+
+--testando a trigger fn_trg_validar_nivel_minimo_guilda
+update guildas
+set nivel_minimo = 6
+where id = 1;
+--lançou exceção
