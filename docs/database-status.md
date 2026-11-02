@@ -1,6 +1,6 @@
 # Integração com o banco original
 
-Estrutura conferida em consulta somente leitura em 30/10/2026. Nenhuma migration, criação de objeto ou alteração de registros foi executada para o novo painel.
+Estrutura conferida em consulta somente leitura em 02/11/2026. Nenhuma migration, criação de objeto ou alteração de registros foi executada durante esta conferência.
 
 ## Schema atual
 
@@ -17,18 +17,21 @@ O PDF anterior usava `dungeons_id` e `data_exploracao`. A aplicação foi alinha
 - `fn_nivel_por_xp(bigint) -> integer`: nível igual a `min(1 + max(xp, 0) / 1000, 100)`, com divisão inteira.
 - `fn_atualizar_nivel_aventureiro(integer) -> integer`: recalcula e grava o nível.
 - `pr_registrar_quest(integer, integer, date, boolean, OUT bigint, OUT integer)`: valida os parâmetros, registra a quest e retorna XP total e nível recalculado.
+- `pr_vincular_aventureiro_guilda(integer, integer)`: verifica os registros e o nível mínimo antes de vincular o aventureiro à guilda.
+- `trg_guildas_validar_nivel_minimo`: exige nível mínimo positivo e impede aumentos incompatíveis com os membros atuais.
+- `trg_dungeons_proteger_recompensa`: impede alterar o XP de uma dungeon que já possui quests.
 - Views de aventureiros/guildas, aventureiros inativos, dungeons de alto XP, histórico de sucesso e ranking materializado de XP.
-- Índices de nível de aventureiro e dificuldade de dungeon.
-- Não foram encontradas triggers nem função de dungeon aleatória no schema na data da consulta.
+- Índices de nível de aventureiro, dificuldade de dungeon, `quests (aventureiro_id, sucesso)` e `aventureiros (guilda_id)`.
+- Não há rotina de dungeon aleatória ou cálculo de chance de sucesso no schema.
 
 ## Implementado no painel
 
-Consultas de guildas, aventureiros, dungeons e quests. Histórico e XP são calculados a partir dos registros atuais; o sorteio usa ordenação aleatória no banco via Eloquent e apenas salva a escolha na sessão. O CRUD existente de quests apenas insere o registro; ele não aplica progressão automaticamente.
+Consultas de guildas, aventureiros, dungeons e quests. Histórico e XP são calculados a partir dos registros atuais. A dungeon é escolhida explicitamente entre os destinos cadastrados. A preparação guarda apenas IDs na sessão e não altera registros. O CRUD existente de quests apenas insere o registro; ele não aplica progressão automaticamente.
 
 ## Próxima feature: execução da expedição
 
-Definir a regra de sucesso, revalidar membro/dungeon, consumir uma oferta uma única vez e chamar a procedure em transação. Como o corpo das rotinas usa nomes sem schema, definir `SET LOCAL search_path TO rpg_trabalho_bd, public` na mesma transação antes do `CALL`. Evitar alterar o nível diretamente no controller.
+Registrar aventureiro, dungeon escolhida, data e resultado informado, conforme os parâmetros de `pr_registrar_quest`. Revalidar membro/dungeon e evitar submissões duplicadas. Como o corpo das rotinas usa nomes sem schema, definir `SET LOCAL search_path TO rpg_trabalho_bd, public` na mesma transação antes do `CALL`. Evitar alterar o nível diretamente no controller ou inventar chances de vitória.
 
-O recálculo do banco pode reduzir um nível antigo que não corresponda ao XP registrado: por isso o sorteio atual não aciona essa atualização. Essa regra precisa ser apresentada com clareza ao conectar a execução.
+O recálculo do banco pode reduzir um nível antigo que não corresponda ao XP registrado: por isso a preparação atual não aciona essa atualização. Essa regra precisa ser apresentada com clareza ao conectar o registro da quest.
 
-A avaliação ainda requer completar a segunda procedure, duas triggers, demonstrações práticas, scripts SQL, backup/restauração e documentação correspondente. O painel inicial não representa a conclusão desses itens.
+Os scripts das duas procedures, funções, triggers e índices foram integrados da `main`. A avaliação ainda exige evidências de uso, backup/restauração e documentação correspondente. A presença dos objetos no banco não conclui a integração de todos eles ao front.

@@ -14,12 +14,12 @@ O elenco permite buscar por nome, combinar a classe e ordenar por nível, nome o
 
 O botão **Consultar atlas** mostra as dungeons do banco com dificuldade, recompensa e vitórias/tentativas da guilda atual. É possível buscar, filtrar dificuldade, ordenar por XP e destacar destinos ainda não explorados. Esses números descrevem o histórico, não a chance de vitória futura.
 
-O sorteio escolhe uma dungeon real no servidor, exige um membro da guilda e guarda o destino na sessão. **Sortear não registra uma quest nem muda o nível.** A execução da expedição com a procedure original será uma próxima feature, depois de fechar as regras de sucesso e de progressão. Nenhum objeto ou dado do Neon foi alterado nesta etapa.
+A preparação exige escolher explicitamente um aventureiro da guilda e uma dungeon cadastrada, pelo formulário ou pelo atlas. O servidor valida os IDs e guarda somente a seleção na sessão; ao abrir o painel, consulta novamente os dados atuais. **Escolher um destino não registra uma quest nem muda o nível.** O banco não define sorteio ou probabilidade de vitória. O registro da quest com a procedure original será uma próxima feature. Nenhum objeto ou dado do Neon foi alterado nesta etapa.
 
 | Método | Rota | Função |
 | --- | --- | --- |
 | GET | `/?guilda=1` | Painel da guilda e histórico real. Sem parâmetro, abre a primeira guilda. |
-| POST | `/guildas/{guilda}/expedicao/sortear` | Sorteia uma dungeon para um membro da guilda, com CSRF e validação de pertença. |
+| POST | `/guildas/{guilda}/expedicao/selecionar` | Salva a dungeon escolhida para um membro da guilda, com CSRF e validação dos dois IDs. |
 
 A estrutura atual de `quests` usa `dungeon_id` e `data_quest`; Models, API e Services foram ajustados a esses nomes. Consulte `docs/database-status.md` para os objetos encontrados no banco.
 

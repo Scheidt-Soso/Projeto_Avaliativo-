@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\LoginController;
 
 Route::get('/', [GuildDashboardController::class, 'index'])->name('guildas.dashboard');
-Route::post('/guildas/{guilda}/expedicao/sortear', [GuildDashboardController::class, 'sortear'])->name('guildas.sortear');
+Route::post('/guildas/{guilda}/expedicao/selecionar', [GuildDashboardController::class, 'selecionarDestino'])->name('guildas.expedicao.selecionar');
 Route::get('/aventureiros', [AventureiroController::class, 'index'])->name('aventureiros.escolher');
 Route::post('/aventureiro/selecionar', [AventureiroController::class, 'selecionar'])->name('aventureiros.selecionar');
 

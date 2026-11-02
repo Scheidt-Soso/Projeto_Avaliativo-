@@ -89,34 +89,51 @@ class GuildDashboardTest extends TestCase
         $this->get('/')->assertOk()->assertSee('O atlas está em branco.')->assertViewHas('dungeons', fn ($dungeons) => $dungeons->isEmpty());
     }
 
-    public function test_sorteio_usa_dungeon_real_sem_mudar_nivel_ou_criar_quest(): void
+    public function test_selecao_preserva_exatamente_a_dungeon_escolhida_sem_mudar_nivel_ou_criar_quest(): void
     {
         $antes = Aventureiro::findOrFail(1)->getAttributes();
-        $response = $this->post('/guildas/1/expedicao/sortear', ['aventureiro_id' => 1]);
+        $response = $this->post('/guildas/1/expedicao/selecionar', ['aventureiro_id' => 1, 'dungeon_id' => 2]);
         $response->assertRedirect(route('guildas.dashboard', ['guilda' => 1]))
-            ->assertSessionHas('expedicao.oferta', fn ($oferta) => $oferta['guilda_id'] === 1 && $oferta['aventureiro_id'] === 1 && Dungeon::whereKey($oferta['dungeon']['id'])->exists());
+            ->assertSessionHas('expedicao.selecao', ['guilda_id' => 1, 'aventureiro_id' => 1, 'dungeon_id' => 2]);
+        $this->get('/?guilda=1')->assertOk()->assertViewHas('destino', fn ($destino) => $destino['dungeon']->id === 2 && $destino['aventureiro']->id === 1)
+            ->assertDontSee('SORTEAR DUNGEON')->assertDontSee('EXPEDIÇÃO ALEATÓRIA');
         $this->assertSame(3, Quest::count());
         $this->assertSame($antes, Aventureiro::findOrFail(1)->getAttributes());
     }
 
     public function test_aventureiro_de_outra_guilda_nao_pode_ser_enviado(): void
     {
-        $this->from('/?guilda=1')->post('/guildas/1/expedicao/sortear', ['aventureiro_id' => 3])
-            ->assertSessionHasErrors('aventureiro_id')->assertSessionMissing('expedicao.oferta');
+        $this->from('/?guilda=1')->post('/guildas/1/expedicao/selecionar', ['aventureiro_id' => 3, 'dungeon_id' => 1])
+            ->assertSessionHasErrors('aventureiro_id')->assertSessionMissing('expedicao.selecao');
     }
 
-    public function test_oferta_de_outra_guilda_nao_aparece_no_painel(): void
+    public function test_destino_de_outra_guilda_nao_aparece_no_painel(): void
     {
-        $this->withSession(['expedicao.oferta' => ['guilda_id' => 2, 'aventureiro_id' => 3, 'dungeon' => ['nome' => 'Oferta de outra guilda']]])
-            ->get('/?guilda=1')->assertOk()->assertViewHas('oferta', null)->assertDontSee('Oferta de outra guilda');
+        $this->withSession(['expedicao.selecao' => ['guilda_id' => 2, 'aventureiro_id' => 3, 'dungeon_id' => 2]])
+            ->get('/?guilda=1')->assertOk()->assertViewHas('destino', null);
     }
 
-    public function test_sorteio_sem_dungeons_retorna_erro_sem_modificar_dados(): void
+    public function test_destino_removido_ou_ausente_e_rejeitado_sem_substituicao_automatica(): void
     {
-        Dungeon::query()->delete();
-        $this->from('/?guilda=1')->post('/guildas/1/expedicao/sortear', ['aventureiro_id' => 1])
-            ->assertSessionHasErrors('dungeon')->assertSessionMissing('expedicao.oferta');
+        $this->from('/?guilda=1')->post('/guildas/1/expedicao/selecionar', ['aventureiro_id' => 1, 'dungeon_id' => 999])
+            ->assertSessionHasErrors('dungeon_id')->assertSessionMissing('expedicao.selecao');
+        $this->post('/guildas/1/expedicao/selecionar', ['aventureiro_id' => 1])
+            ->assertSessionHasErrors('dungeon_id')->assertSessionMissing('expedicao.selecao');
         $this->assertSame(3, Quest::count());
+    }
+
+    public function test_selecao_reconsulta_dados_atuais_e_descarta_membro_transferido(): void
+    {
+        $this->withSession(['expedicao.selecao' => ['guilda_id' => 1, 'aventureiro_id' => 1, 'dungeon_id' => 2]]);
+        Dungeon::findOrFail(2)->update(['nome' => 'Torre Renomeada']);
+        $this->get('/?guilda=1')->assertViewHas('destino', fn ($destino) => $destino['dungeon']->nome === 'Torre Renomeada');
+        Aventureiro::findOrFail(1)->update(['guilda_id' => 2]);
+        $this->get('/?guilda=1')->assertViewHas('destino', null)->assertSessionMissing('expedicao.selecao');
+    }
+
+    public function test_rota_antiga_de_sorteio_foi_removida(): void
+    {
+        $this->post('/guildas/1/expedicao/sortear', ['aventureiro_id' => 1])->assertNotFound();
     }
 
     public function test_api_de_quests_usa_os_nomes_atuais_do_banco(): void

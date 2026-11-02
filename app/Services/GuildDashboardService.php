@@ -6,17 +6,10 @@ use App\Models\Guilda;
 use App\Models\Dungeon;
 use App\Models\Quest;
 use App\Support\GuildBaseAppearance;
-use Illuminate\Validation\ValidationException;
 
 class GuildDashboardService
 {
     public function __construct(private GuildBaseAppearance $appearance) {}
-
-    public function sortearDungeon(): Dungeon
-    {
-        return Dungeon::query()->inRandomOrder()->first()
-            ?? throw ValidationException::withMessages(['dungeon' => 'Nenhuma dungeon foi cadastrada para o sorteio.']);
-    }
 
     public function dashboard(?int $guildaId = null): array
     {

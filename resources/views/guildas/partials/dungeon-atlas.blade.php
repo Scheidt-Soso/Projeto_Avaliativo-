@@ -2,7 +2,7 @@
     <button class="dialog-close" type="button" data-close-dialog aria-label="Fechar atlas"><x-pixel-icon name="close" /></button>
     <p class="eyebrow">MAPAS ALÉM DA MURALHA</p>
     <h2 id="atlas-title">Atlas de expedições.</h2>
-    <p class="dialog-description">Conheça os caminhos antes do sorteio. O próximo destino continua sendo aleatório.</p>
+    <p class="dialog-description">Escolha o próximo destino pelo nome, dificuldade e recompensa.</p>
     <div class="atlas-guild"><x-pixel-icon name="flag" /><span>HISTÓRICO DE {{ $guilda?->nome ?? 'UMA NOVA GUILDA' }}</span><span>{{ $dungeons->count() }} DESTINOS</span></div>
     <form class="atlas-tools" data-atlas-tools hidden role="search" aria-label="Buscar dungeons">
         <label class="roster-search"><x-pixel-icon name="search" /><span class="sr-only">Nome da dungeon</span><input type="search" name="dungeon" maxlength="100" placeholder="Buscar nas anotações..." data-atlas-search></label>
@@ -25,11 +25,14 @@
                         <x-pixel-icon name="door" /><span>Ainda não explorada pela guilda</span>
                     @endif
                 </div>
+                @if ($guilda?->aventureiros->isNotEmpty())
+                    <button class="secondary-action" type="button" data-select-dungeon="{{ $dungeon->id }}" aria-label="Escolher {{ $dungeon->nome }}" hidden>ESCOLHER DESTINO <x-pixel-icon name="arrow" /></button>
+                @endif
             </article>
         @empty
             <p class="empty-copy">* O atlas está em branco. Ainda não há dungeons cadastradas.</p>
         @endforelse
         <p class="empty-copy atlas-empty" data-atlas-empty hidden>* Nenhum caminho corresponde aos filtros. Tente outra busca.</p>
     </div>
-    <div class="atlas-footer"><p>Os registros contam as quests dos membros atuais. O histórico não garante o resultado da próxima expedição.</p><button class="secondary-action" type="button" data-close-dialog>VOLTAR AO QUARTEL <x-pixel-icon name="arrow" /></button></div>
+    <div class="atlas-footer"><p>Os registros contam as quests dos membros atuais. Apenas quests bem-sucedidas contam para o XP.</p><button class="secondary-action" type="button" data-close-dialog>VOLTAR AO QUARTEL <x-pixel-icon name="arrow" /></button></div>
 </dialog>

@@ -30,6 +30,17 @@ document.querySelector('[data-open-guilds]')?.addEventListener('click', () => do
 const atlasDialog = document.querySelector('[data-dungeon-atlas]');
 const cleanupAtlas = mountDungeonAtlas(atlasDialog);
 document.querySelector('[data-open-atlas]')?.addEventListener('click', () => atlasDialog?.showModal());
+document.querySelectorAll('[data-select-dungeon]').forEach((button) => {
+    const select = document.querySelector('#expedition-dungeon');
+    if (!select) return;
+    button.hidden = false;
+    button.addEventListener('click', () => {
+        select.value = button.dataset.selectDungeon;
+        atlasDialog.close();
+        document.querySelector('#expedicoes')?.scrollIntoView({ behavior: paused || reducedMotion.matches ? 'instant' : 'smooth', block: 'center' });
+        select.focus({ preventScroll: true });
+    });
+});
 document.querySelectorAll('[data-close-dialog]').forEach((button) => button.addEventListener('click', () => button.closest('dialog').close()));
 document.querySelectorAll('dialog').forEach((dialog) => {
     dialog.addEventListener('click', (event) => {
@@ -66,7 +77,7 @@ document.querySelectorAll('[data-expedition-form]').forEach((form) => {
         submitting = true;
         form.querySelector('button[type="submit"]').disabled = true;
         if (loading) {
-            loading.querySelector('p').textContent = 'CONSULTANDO O DESTINO...';
+            loading.querySelector('p').textContent = 'SALVANDO DESTINO...';
             loading.hidden = false;
         }
     });
@@ -77,10 +88,10 @@ window.addEventListener('pageshow', () => {
     document.querySelectorAll('[data-expedition-form] button').forEach((button) => { button.disabled = false; });
 });
 
-const revealedOffer = document.querySelector('[data-new-offer]');
-if (revealedOffer) {
-    revealedOffer.scrollIntoView({ behavior: paused || reducedMotion.matches ? 'instant' : 'smooth', block: 'center' });
-    revealedOffer.focus({ preventScroll: true });
+const selectedDestination = document.querySelector('[data-new-selection]');
+if (selectedDestination) {
+    selectedDestination.scrollIntoView({ behavior: paused || reducedMotion.matches ? 'instant' : 'smooth', block: 'center' });
+    selectedDestination.focus({ preventScroll: true });
 }
 
 const navItems = [...document.querySelectorAll('.nav-item')];
