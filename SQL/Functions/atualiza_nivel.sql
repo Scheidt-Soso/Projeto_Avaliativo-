@@ -18,5 +18,4 @@ begin
     where id = p_aventureiro_id;
 
     return v_nivel;
-end;
-$$;
+end $$;

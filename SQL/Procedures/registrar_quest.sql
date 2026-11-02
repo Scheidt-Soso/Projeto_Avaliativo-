@@ -48,5 +48,4 @@ begin
         p_aventureiro_id
     );
 
-end;
-$$;
+end $$;
