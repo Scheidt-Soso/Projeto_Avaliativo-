@@ -41,6 +41,7 @@ class GuildDashboardTest extends TestCase
             ->assertViewHas('resumo', ['membros' => 2, 'quests' => 2, 'sucessos' => 1, 'xp' => 40])
             ->assertViewHas('historico', fn ($historico) => $historico->count() === 2 && $historico->every(fn ($quest) => $quest->aventureiro->guilda_id === 1))
             ->assertSee('Kaelthas')->assertSee('Elara')->assertDontSee('Lyriel');
+        $this->get('/?guilda=1')->assertSee('Conta de Kaelthas')->assertSee(route('logout'))->assertSee('SAIR DO QUARTEL');
     }
 
     public function test_painel_usa_primeira_guilda_quando_nao_ha_selecao(): void

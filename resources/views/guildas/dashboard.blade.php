@@ -22,7 +22,7 @@
         <div class="sidebar-bottom"><span class="connection-dot"></span> QUARTEL CONECTADO<span class="version-tag">v.02</span></div>
     </aside>
     <div class="workspace">
-        <header class="topbar"><span class="breadcrumb">ARQUIVO <span>/</span> GUILDAS <span>/</span> <b>QUARTEL</b></span><div class="topbar-actions"><button type="button" class="motion-toggle" aria-pressed="false" data-motion-toggle><x-pixel-icon name="pause" /><span>Pausar animações</span></button><span class="topbar-divider"></span><button class="guild-switch" type="button" data-open-guilds><x-pixel-icon name="shield" /><span>{{ $guilda?->nome ?? 'Escolher guilda' }}</span><x-pixel-icon name="chevron" /></button></div></header>
+        <header class="topbar"><span class="breadcrumb">ARQUIVO <span>/</span> GUILDAS <span>/</span> <b>QUARTEL</b></span><div class="topbar-actions"><button type="button" class="motion-toggle" aria-pressed="false" data-motion-toggle><x-pixel-icon name="pause" /><span>Pausar animações</span></button><span class="topbar-divider"></span><button class="guild-switch" type="button" data-open-guilds><x-pixel-icon name="shield" /><span>{{ $guilda?->nome ?? 'Escolher guilda' }}</span><x-pixel-icon name="chevron" /></button>@include('guildas.partials.account')</div></header>
         <main>
             @if (session('sucesso'))<div class="system-message" role="status"><x-pixel-icon name="check" /><p>{{ session('sucesso') }}</p></div>@endif
             @if ($errors->any())<div class="system-message error" role="alert"><x-pixel-icon name="close" /><p>{{ $errors->first() }}</p></div>@endif
