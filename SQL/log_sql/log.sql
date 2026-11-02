@@ -42,3 +42,9 @@ update guildas
 set nivel_minimo = 6
 where id = 1;
 --lançou exceção
+
+--testando a trigger fn_trg_proteger_recompensa_dungeon
+update dungeons
+set xp_recompensa = xp_recompensa + 100
+where id = 1;
+--lançou exceção
