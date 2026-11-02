@@ -15,8 +15,7 @@ BEGIN
             v_aventureiro.id
         );
     END LOOP;
-END;
-$$;
+END $$;
 
 -- testando a procedure registrar_quest
 call pr_registrar_quest(
@@ -34,3 +33,6 @@ where aventureiro_id = 1
   and dungeon_id = 2
   and data_quest = current_date
   and sucesso = true;
+
+-- testando a procedure vincular_aventureiro_guilda
+call pr_vincular_aventureiro_guilda(5, 4);
