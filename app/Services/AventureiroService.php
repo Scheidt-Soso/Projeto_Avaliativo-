@@ -24,4 +24,6 @@ class AventureiroService extends CrudService
             [$aventureiroId, $guildaId]
         );
     }
+
+    
 }

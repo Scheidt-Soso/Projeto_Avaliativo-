@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Quest;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class QuestService extends CrudService
 {
@@ -26,5 +27,13 @@ class QuestService extends CrudService
         $dados['data_exploracao'] ??= now()->toDateString();
 
         return parent::criar($dados);
+    }
+
+    public function registrarQuest(int $dataQuest, int $aventureiroId, int $dungeonId, string $resultado): void
+    {
+        DB::statement(
+            'CALL rpg_trabalho_bd.pr_registrar_quest(?, ?, ?, ?)',
+            [$dataQuest, $aventureiroId, $dungeonId, $resultado]
+        );
     }
 }

@@ -17,4 +17,23 @@ Route::apiResource('aventureiros', AventureiroController::class);
 Route::apiResource('dungeons', DungeonController::class);
 Route::apiResource('quests', QuestController::class);
 
-Route::post('/aventureiros/{aventureiro}/guilda', [AventureiroController::class, 'vincularGuilda']);
+Route::prefix('jogador')->group(function () {
+    Route::get('/guildas', [GuildaController::class, 'listarGuildasJogador']);
+    Route::get('/aventureiros', [AventureiroController::class, 'listarAventureirosJogador']);
+    Route::get('/dungeons', [DungeonController::class, 'listarDungeonsJogador']);
+    Route::get('/quests', [QuestController::class, 'listarQuestsJogador']);
+
+    Route::post('/aventureiros/{aventureiro}/guilda', [AventureiroController::class, 'vincularGuilda']);
+    
+});
+
+Route::prefix('admin')->group(function () {
+    // Rotas para o administrador visualizar todas as guildas, aventureiros, dungeons e quests
+    Route::get('/guildas', [GuildaController::class, 'listarGuildasAdmin']);
+    Route::get('/aventureiros', [AventureiroController::class, 'listarAventureirosAdmin']);
+    Route::get('/dungeons', [DungeonController::class, 'listarDungeonsAdmin']);
+    Route::get('/quests', [QuestController::class, 'listarQuestsAdmin']);
+    
+});
+
+Route::post('/quests/{quest}/registrar', [QuestController::class, 'registrarQuest']);

@@ -60,4 +60,23 @@ class QuestController extends Controller
 
         return response()->json(null, 204);
     }
+
+    public function registrarQuest(Request $request): JsonResponse
+    {
+        $dados = $request->validate([
+            'data_quest' => ['required', 'date', 'before_or_equal:today'],
+            'aventureiro_id' => ['required', 'integer', Rule::exists(Aventureiro::class, 'id')],
+            'dungeon_id' => ['required', 'integer', Rule::exists(Dungeon::class, 'id')],
+            'resultado' => ['required', 'string', Rule::in(['sucesso', 'falha'])],
+        ]);
+
+        $this->service->registrarQuest(
+            $dados['data_quest'],
+            $dados['aventureiro_id'],
+            $dados['dungeon_id'],
+            $dados['resultado']
+        );
+
+        return response()->json(['message' => 'Quest registrada com sucesso.'], 200);
+    }
 }
