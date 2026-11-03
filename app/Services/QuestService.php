@@ -24,16 +24,29 @@ class QuestService extends CrudService
      */
     public function criar(array $dados): Model
     {
-        $dados['data_exploracao'] ??= now()->toDateString();
+        $dados['data_quest'] ??= now()->toDateString();
 
         return parent::criar($dados);
     }
 
-    public function registrarQuest(int $dataQuest, int $aventureiroId, int $dungeonId, string $resultado): void
-    {
-        DB::statement(
-            'CALL rpg_trabalho_bd.pr_registrar_quest(?, ?, ?, ?)',
-            [$dataQuest, $aventureiroId, $dungeonId, $resultado]
-        );
-    }
+    public function registrarQuest(
+        string $dataQuest,
+        int $aventureiroId,
+        int $dungeonId,
+        string $resultado
+    ): array {
+        $sucesso = $resultado === 'sucesso';
+
+    $resultadoProcedure = DB::select(
+        'CALL rpg_trabalho_bd.pr_registrar_quest(?, ?, ?, ?, NULL, NULL)',
+        [
+            $aventureiroId,
+            $dungeonId,
+            $dataQuest,
+            $sucesso
+        ]
+    );
+
+    return (array) $resultadoProcedure[0];
+}
 }

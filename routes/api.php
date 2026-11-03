@@ -36,4 +36,4 @@ Route::prefix('admin')->group(function () {
     
 });
 
-Route::post('/quests/{quest}/registrar', [QuestController::class, 'registrarQuest']);
+Route::post('/quests/registrar', [QuestController::class, 'registrarQuest']);

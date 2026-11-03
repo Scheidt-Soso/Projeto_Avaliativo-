@@ -10,8 +10,8 @@ class Quest extends Model
 
     protected $fillable = [
         'aventureiro_id',
-        'dungeons_id',
-        'data_exploracao',
+        'dungeon_id',
+        'data_quest',
         'sucesso',
     ];
 

@@ -29,8 +29,8 @@ class QuestController extends Controller
     {
         $dados = $request->validate([
             'aventureiro_id' => ['required', 'integer', Rule::exists(Aventureiro::class, 'id')],
-            'dungeons_id' => ['required', 'integer', Rule::exists(Dungeon::class, 'id')],
-            'data_exploracao' => ['nullable', 'date'],
+            'dungeon_id' => ['required', 'integer', Rule::exists(Dungeon::class, 'id')],
+            'data_quest' => ['nullable', 'date'],
             'sucesso' => ['required', 'boolean'],
         ]);
 
@@ -46,8 +46,8 @@ class QuestController extends Controller
     {
         $dados = $request->validate([
             'aventureiro_id' => ['sometimes', 'required', 'integer', Rule::exists(Aventureiro::class, 'id')],
-            'dungeons_id' => ['sometimes', 'required', 'integer', Rule::exists(Dungeon::class, 'id')],
-            'data_exploracao' => ['sometimes', 'required', 'date'],
+            'dungeon_id' => ['sometimes', 'required', 'integer', Rule::exists(Dungeon::class, 'id')],
+            'data_quest' => ['sometimes', 'required', 'date'],
             'sucesso' => ['sometimes', 'required', 'boolean'],
         ]);
 
@@ -62,21 +62,25 @@ class QuestController extends Controller
     }
 
     public function registrarQuest(Request $request): JsonResponse
-    {
-        $dados = $request->validate([
-            'data_quest' => ['required', 'date', 'before_or_equal:today'],
-            'aventureiro_id' => ['required', 'integer', Rule::exists(Aventureiro::class, 'id')],
-            'dungeon_id' => ['required', 'integer', Rule::exists(Dungeon::class, 'id')],
-            'resultado' => ['required', 'string', Rule::in(['sucesso', 'falha'])],
-        ]);
+{
+    $dados = $request->validate([
+        'data_quest' => ['required', 'date', 'before_or_equal:today'],
+        'aventureiro_id' => ['required', 'integer', Rule::exists(Aventureiro::class, 'id')],
+        'dungeon_id' => ['required', 'integer', Rule::exists(Dungeon::class, 'id')],
+        'resultado' => ['required', 'string', Rule::in(['sucesso', 'falha'])],
+    ]);
 
-        $this->service->registrarQuest(
-            $dados['data_quest'],
-            $dados['aventureiro_id'],
-            $dados['dungeon_id'],
-            $dados['resultado']
-        );
+    $resultado = $this->service->registrarQuest(
+        $dados['data_quest'],
+        $dados['aventureiro_id'],
+        $dados['dungeon_id'],
+        $dados['resultado']
+    );
 
-        return response()->json(['message' => 'Quest registrada com sucesso.'], 200);
-    }
+    return response()->json([
+        'message' => 'Quest registrada com sucesso.',
+        'xp_total' => $resultado['xp_total'],
+        'nivel_atual' => $resultado['nivel_atual']
+    ], 200);
+}
 }
