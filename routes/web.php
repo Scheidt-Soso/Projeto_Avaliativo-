@@ -31,8 +31,12 @@ Route::prefix('jogador')->name('jogador.')->group(function () {
 
 Route::prefix('admin')->name('admin.')->group(function () {
 
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('dashboard');
+    Route::middleware(['auth', 'role:admin'])->group(function () {
+
+        Route::get('/dashboard', function () {
+            return view('admin.dashboard');
+        })->name('dashboard');
+
+    });
 
 });
