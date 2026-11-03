@@ -31,9 +31,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/quests', [QuestController::class, 'index']);
         Route::get('/quests/{quest}', [QuestController::class, 'show']);
         Route::post('/quests', [QuestController::class, 'store']);
+        Route::post('/quests/registrar', [QuestController::class, 'registrar']);
+        Route::post('/aventureiros/{aventureiro}/guilda', [AventureiroController::class, 'vincularGuilda']);
     });
 
     Route::prefix('admin')->middleware('role:admin')->group(function () {
+        Route::post('/quests/registrar', [QuestController::class, 'registrar']);
+        Route::post('/aventureiros/{aventureiro}/guilda', [AventureiroController::class, 'vincularGuilda']);
         Route::apiResource('guildas', GuildaController::class);
         Route::apiResource('aventureiros', AventureiroController::class);
         Route::apiResource('dungeons', DungeonController::class);

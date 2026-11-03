@@ -7,6 +7,8 @@ use App\Http\Resources\AventureiroResource;
 use App\Models\Aventureiro;
 use App\Models\Guilda;
 use App\Services\AventureiroService;
+use App\Services\ProcedureService;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -14,9 +16,10 @@ use Illuminate\Validation\Rule;
 
 class AventureiroController extends Controller
 {
-    public function __construct(private AventureiroService $service)
-    {
-    }
+    public function __construct(
+        private AventureiroService $service,
+        private ProcedureService $procedures,
+    ) {}
 
     public function index(): AnonymousResourceCollection
     {
@@ -33,6 +36,25 @@ class AventureiroController extends Controller
         ]);
 
         return new AventureiroResource($this->service->criar($dados));
+    }
+
+    public function vincularGuilda(Request $request, Aventureiro $aventureiro): AventureiroResource|JsonResponse
+    {
+        if ($request->user()?->role !== 'admin' && (int) $request->user()?->id !== (int) $aventureiro->id) {
+            abort(403, 'Você só pode vincular o seu próprio aventureiro.');
+        }
+
+        $dados = $request->validate([
+            'guilda_id' => ['required', 'integer', Rule::exists(Guilda::class, 'id')],
+        ]);
+
+        try {
+            $this->procedures->vincularAventureiroGuilda($aventureiro->id, $dados['guilda_id']);
+        } catch (QueryException $e) {
+            return response()->json(['message' => $this->mensagemDoBanco($e)], 422);
+        }
+
+        return new AventureiroResource($aventureiro->refresh()->load('guilda'));
     }
 
     public function show(Aventureiro $aventureiro): AventureiroResource
