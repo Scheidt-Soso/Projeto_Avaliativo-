@@ -16,3 +16,5 @@ Route::apiResource('guildas', GuildaController::class);
 Route::apiResource('aventureiros', AventureiroController::class);
 Route::apiResource('dungeons', DungeonController::class);
 Route::apiResource('quests', QuestController::class);
+
+Route::post('/aventureiros/{aventureiro}/guilda', [AventureiroController::class, 'vincularGuilda']);

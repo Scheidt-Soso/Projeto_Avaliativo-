@@ -58,4 +58,23 @@ class AventureiroController extends Controller
 
         return response()->json(null, 204);
     }
+
+    public function vincularGuilda(Request $request, Aventureiro $aventureiro): JsonResponse
+    {
+        $dados = $request->validate([
+            'guilda_id' => ['required', 'integer'],
+        ]);
+
+        try {
+            $this->service->vincularAventureiroGuilda($aventureiro->id, $dados['guilda_id']);
+
+            return response()->json([
+                'mensagem' => 'Aventureiro vinculado à guilda com sucesso!'
+            ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            return response()->json([
+                'erro' => $e->getMessage()
+            ], 422);
+        }
+    }
 }
