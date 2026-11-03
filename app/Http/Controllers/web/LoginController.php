@@ -34,8 +34,29 @@ class LoginController extends Controller
             ->with('success', 'Cadastro realizado com sucesso!');
     }
 
+    public function login(Request $request)
+    {
+        $dados = $request->validate([
+            'nickname' => 'required|string|max:50',
+            'senha' => 'required|string|min:6',
+        ]);
+
+        $aventureiro = $this->loginService->login($dados);
+
+        if (!$aventureiro) {
+            return redirect()->back()
+                ->withErrors(['nickname' => 'Credenciais inválidas.'])
+                ->withInput();
+        }
+
+        auth()->login($aventureiro);
+
+        return redirect()->route('jogador.dashboard');
+    }
+
     public function showLogin()
     {
         return view('jogador.login');
     }
+
 }

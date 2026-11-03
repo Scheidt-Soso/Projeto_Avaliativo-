@@ -18,4 +18,14 @@ class LoginService
         ]);
     }
 
+    public function login(array $dados)
+    {
+        $aventureiro = Aventureiro::where('nickname', $dados['nickname'])->first();
+
+        if (!$aventureiro || !Hash::check($dados['senha'], $aventureiro->senha)) {
+            return null;
+        }
+
+        return $aventureiro;
+    }
 }
