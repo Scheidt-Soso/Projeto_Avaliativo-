@@ -6,6 +6,17 @@
     <title>registro</title>
 </head>
 <body>
+
+@if ($errors->any())
+    @foreach ($errors->all() as $erro)
+        <p>{{ $erro }}</p>
+    @endforeach
+@endif
+
+@if (session('success'))
+    <p>{{ session('success') }}</p>
+@endif
+
     <form action="{{ route('register.store') }}" method="POST">
     @csrf
 

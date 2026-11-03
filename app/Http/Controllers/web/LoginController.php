@@ -23,7 +23,7 @@ class LoginController extends Controller
     public function register(Request $request)
     {
         $dados = $request->validate([
-            'nickname' => 'required|string|max:50|unique:pgsql.aventureiros,nickname',
+            'nickname' => 'required|string|max:50|unique:pgsql.rpg_trabalho_bd.aventureiros,nickname',
             'classe' => 'required|string|max:50',
             'senha' => 'required|string|min:6|confirmed',
         ]);
@@ -50,6 +50,8 @@ class LoginController extends Controller
         }
 
         auth()->login($aventureiro);
+
+        $request->session()->regenerate();
 
         return redirect()->route('jogador.dashboard');
     }
