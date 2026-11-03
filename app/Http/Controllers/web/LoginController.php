@@ -59,4 +59,10 @@ class LoginController extends Controller
         return view('jogador.login');
     }
 
+    public function logout(Request $request)
+    {
+        $this->loginService->logout($request);
+
+        return redirect()->route('login');
+    }
 }

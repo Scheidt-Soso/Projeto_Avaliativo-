@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Aventureiro;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LoginService
 {
@@ -27,5 +29,13 @@ class LoginService
         }
 
         return $aventureiro;
+    }
+    
+    public function logout(Request $request)
+    {
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
     }
 }
