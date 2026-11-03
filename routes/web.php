@@ -1,11 +1,14 @@
 <?php
 
+use App\Http\Controllers\Web\AventureiroController;
+use App\Http\Controllers\Web\GuildDashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\LoginController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [GuildDashboardController::class, 'index'])->name('guildas.dashboard');
+Route::post('/guildas/{guilda}/expedicao/sortear', [GuildDashboardController::class, 'sortear'])->name('guildas.sortear');
+Route::get('/aventureiros', [AventureiroController::class, 'index'])->name('aventureiros.escolher');
+Route::post('/aventureiro/selecionar', [AventureiroController::class, 'selecionar'])->name('aventureiros.selecionar');
 
 // Rotas públicas
 Route::get('/login', [LoginController::class, 'showLogin'])->name('login');

@@ -12,8 +12,8 @@ class QuestResource extends JsonResource
         return [
             'id' => $this->id,
             'aventureiro_id' => $this->aventureiro_id,
-            'dungeons_id' => $this->dungeons_id,
-            'data_exploracao' => $this->data_exploracao,
+            'dungeon_id' => $this->dungeon_id,
+            'data_quest' => $this->data_quest,
             'sucesso' => $this->sucesso,
             'aventureiro' => new AventureiroResource($this->whenLoaded('aventureiro')),
             'dungeon' => new DungeonResource($this->whenLoaded('dungeon')),
