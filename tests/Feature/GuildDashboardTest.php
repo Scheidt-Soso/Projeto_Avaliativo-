@@ -7,6 +7,7 @@ use App\Models\Dungeon;
 use App\Models\Guilda;
 use App\Models\Quest;
 use Illuminate\Support\Facades\DB;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class GuildDashboardTest extends TestCase
@@ -18,7 +19,7 @@ class GuildDashboardTest extends TestCase
         DB::purge('sqlite');
         DB::statement("ATTACH DATABASE ':memory:' AS rpg_trabalho_bd");
         DB::statement('CREATE TABLE rpg_trabalho_bd.guildas (id INTEGER PRIMARY KEY, nome TEXT, nivel_minimo INTEGER, data_fundacao TEXT)');
-        DB::statement('CREATE TABLE rpg_trabalho_bd.aventureiros (id INTEGER PRIMARY KEY, nickname TEXT UNIQUE, classe TEXT, nivel INTEGER, guilda_id INTEGER)');
+        DB::statement("CREATE TABLE rpg_trabalho_bd.aventureiros (id INTEGER PRIMARY KEY, nickname TEXT UNIQUE, classe TEXT, nivel INTEGER, guilda_id INTEGER, senha TEXT, role TEXT NOT NULL DEFAULT 'jogador')");
         DB::statement('CREATE TABLE rpg_trabalho_bd.dungeons (id INTEGER PRIMARY KEY, nome TEXT, dificuldade TEXT, xp_recompensa INTEGER)');
         DB::statement('CREATE TABLE rpg_trabalho_bd.quests (id INTEGER PRIMARY KEY, aventureiro_id INTEGER, dungeon_id INTEGER, data_quest TEXT, sucesso BOOLEAN)');
         Guilda::create(['nome' => 'Lâminas Rubras', 'nivel_minimo' => 5, 'data_fundacao' => '2020-01-15']);
@@ -121,7 +122,12 @@ class GuildDashboardTest extends TestCase
 
     public function test_api_de_quests_usa_os_nomes_atuais_do_banco(): void
     {
-        $this->postJson('/api/quests', ['aventureiro_id' => 1, 'dungeon_id' => 2, 'data_quest' => '2026-10-01', 'sucesso' => true])
+        $admin = Aventureiro::findOrFail(1);
+        $admin->role = 'admin';
+        $admin->save();
+        Sanctum::actingAs($admin);
+
+        $this->postJson('/api/admin/quests', ['aventureiro_id' => 1, 'dungeon_id' => 2, 'data_quest' => '2026-10-01', 'sucesso' => true])
             ->assertCreated()->assertJsonPath('data.dungeon_id', 2)->assertJsonPath('data.data_quest', '2026-10-01')
             ->assertJsonPath('data.dungeon.nome', 'Torre Esquecida');
         $this->assertSame(4, Quest::count());

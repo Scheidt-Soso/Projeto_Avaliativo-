@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
 // nota: as models estão com uma base boa, apontam para o schema correto e tabela, 
 // possuem os campos fillable e timestamps, e possuem os relacionamentos corretos
@@ -10,6 +11,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Aventureiro extends Authenticatable
 {
+    use HasApiTokens;
+
     protected $table = 'rpg_trabalho_bd.aventureiros';
 
     protected $fillable = [

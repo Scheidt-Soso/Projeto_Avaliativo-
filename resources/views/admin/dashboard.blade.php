@@ -12,10 +12,10 @@
 
     <h2>Gerenciamento</h2>
     <ul>
-        <li><a href="/api/guildas">Guildas</a></li>
-        <li><a href="/api/aventureiros">Aventureiros</a></li>
-        <li><a href="/api/dungeons">Dungeons</a></li>
-        <li><a href="/api/quests">Quests</a></li>
+        <li><a href="/api/admin/guildas">Guildas</a></li>
+        <li><a href="/api/admin/aventureiros">Aventureiros</a></li>
+        <li><a href="/api/admin/dungeons">Dungeons</a></li>
+        <li><a href="/api/admin/quests">Quests</a></li>
     </ul>
 
     <form action="{{ route('logout') }}" method="POST">

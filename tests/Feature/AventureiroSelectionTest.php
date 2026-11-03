@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Aventureiro;
 use App\Models\Guilda;
 use Illuminate\Support\Facades\DB;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class AventureiroSelectionTest extends TestCase
@@ -17,7 +18,7 @@ class AventureiroSelectionTest extends TestCase
         DB::purge('sqlite');
         DB::statement("ATTACH DATABASE ':memory:' AS rpg_trabalho_bd");
         DB::statement('CREATE TABLE rpg_trabalho_bd.guildas (id INTEGER PRIMARY KEY, nome TEXT, nivel_minimo INTEGER, data_fundacao TEXT)');
-        DB::statement('CREATE TABLE rpg_trabalho_bd.aventureiros (id INTEGER PRIMARY KEY, nickname TEXT UNIQUE, classe TEXT, nivel INTEGER, guilda_id INTEGER)');
+        DB::statement("CREATE TABLE rpg_trabalho_bd.aventureiros (id INTEGER PRIMARY KEY, nickname TEXT UNIQUE, classe TEXT, nivel INTEGER, guilda_id INTEGER, senha TEXT, role TEXT NOT NULL DEFAULT 'jogador')");
         Guilda::create(['id' => 1, 'nome' => 'Lâminas Rubras', 'nivel_minimo' => 5, 'data_fundacao' => '2020-01-15']);
         Aventureiro::create(['nickname' => 'Kaelthas', 'classe' => 'Guerreiro', 'nivel' => 12, 'guilda_id' => 1]);
         Aventureiro::create(['nickname' => 'Lyriel', 'classe' => 'Mago', 'nivel' => 25, 'guilda_id' => null]);
@@ -73,12 +74,16 @@ class AventureiroSelectionTest extends TestCase
 
     public function test_api_existente_lista_aventureiros_com_guilda_em_json(): void
     {
-        $this->getJson('/api/aventureiros')->assertOk()->assertJsonPath('data.0.nickname', 'Kaelthas')
+        Sanctum::actingAs(Aventureiro::findOrFail(1));
+
+        $this->getJson('/api/jogador/aventureiros')->assertOk()->assertJsonPath('data.0.nickname', 'Kaelthas')
             ->assertJsonPath('data.0.guilda.nome', 'Lâminas Rubras')->assertJsonStructure(['data', 'links', 'meta']);
     }
 
     public function test_api_existente_retorna_404_para_aventureiro_inexistente(): void
     {
-        $this->getJson('/api/aventureiros/999')->assertNotFound()->assertJsonStructure(['message']);
+        Sanctum::actingAs(Aventureiro::findOrFail(1));
+
+        $this->getJson('/api/jogador/aventureiros/999')->assertNotFound()->assertJsonStructure(['message']);
     }
 }

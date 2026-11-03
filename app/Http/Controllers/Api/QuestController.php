@@ -27,12 +27,21 @@ class QuestController extends Controller
     /** Registra o resultado de uma expedição pela API. */
     public function store(Request $request): QuestResource
     {
-        $dados = $request->validate([
-            'aventureiro_id' => ['required', 'integer', Rule::exists(Aventureiro::class, 'id')],
+        $regras = [
             'dungeon_id' => ['required', 'integer', Rule::exists(Dungeon::class, 'id')],
             'data_quest' => ['nullable', 'date'],
             'sucesso' => ['required', 'boolean'],
-        ]);
+        ];
+
+        if ($request->user()?->role === 'admin') {
+            $regras['aventureiro_id'] = ['required', 'integer', Rule::exists(Aventureiro::class, 'id')];
+        }
+
+        $dados = $request->validate($regras);
+
+        if ($request->user()?->role !== 'admin') {
+            $dados['aventureiro_id'] = $request->user()->id;
+        }
 
         return new QuestResource($this->service->criar($dados));
     }
