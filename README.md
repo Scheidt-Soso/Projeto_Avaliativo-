@@ -14,13 +14,13 @@ O cadastro integrado da `feature/dudu` cria um aventureiro com senha protegida p
 | GET / POST | `/register` | Formulário e cadastro de aventureiro. |
 | POST | `/logout` | Encerra a sessão, com proteção CSRF. |
 
-O painel e os cadastros exigem login. A API aceita sessão do site por Sanctum ou token emitido em `/api/login`; `/api/user` devolve a conta sem a senha. O catálogo `GET /api/dungeons` é público. Jogadores usam `/api/jogador/*` para consultar cadastros, vincular o próprio aventureiro a uma guilda e registrar as próprias quests. Administradores usam `/api/admin/*` para criar, editar e excluir os quatro tipos de registro. Não existem rotas genéricas `/api/{recurso}`. O papel vem do banco (`admin` ou `jogador`); o cadastro público cria apenas jogadores. Para outro domínio/porta, configure `SANCTUM_STATEFUL_DOMAINS` e envie os cookies e o token CSRF.
+O painel e os cadastros exigem login. A API aceita sessão do site por Sanctum ou token emitido em `/api/login`; `/api/user` devolve a conta sem a senha. O catálogo `GET /api/dungeons` é público. Jogadores usam `/api/jogador/*` para consultar cadastros e vincular o próprio aventureiro a uma guilda. Administradores usam `/api/admin/*` para criar, editar e excluir os quatro tipos de registro, incluindo os resultados das quests. Não existem rotas genéricas `/api/{recurso}`. O papel vem do banco (`admin` ou `jogador`); o cadastro público cria apenas jogadores. Para outro domínio/porta, configure `SANCTUM_STATEFUL_DOMAINS` e envie os cookies e o token CSRF.
 
 ## Cadastros, perfil e relatórios
 
 As páginas `/cadastros/guildas`, `/cadastros/aventureiros`, `/cadastros/dungeons` e `/cadastros/quests` possuem listagem, busca, filtros, paginação, ficha, criação, edição e exclusão. Alterações exigem administrador. A exclusão mostra os efeitos sobre registros relacionados e exige digitar o nome do registro. Formulários de criação usam um identificador para evitar duplicação por reenvio. Uma conta administrativa não pode excluir ou rebaixar a si mesma durante a sessão.
 
-Em `/perfil`, cada pessoa vê seu aventureiro, XP e histórico; pode entrar em uma guilda compatível com o nível e registrar o resultado real de uma expedição. A dungeon é escolhida explicitamente. O servidor usa o ID autenticado, mesmo que outro ID seja enviado pelo cliente.
+Em `/perfil`, cada pessoa vê seu aventureiro, XP e histórico e pode entrar em uma guilda compatível com o nível. A dungeon é escolhida explicitamente no quartel. **Somente administradores registram, corrigem ou excluem resultados de quests.** Jogadores não escolhem sucesso ou falha nem alteram XP/nível pelo perfil ou pela API, mesmo enviando campos forjados. O botão administrativo abre o cadastro de quests com aventureiro e dungeon preenchidos.
 
 O registro de quests usa `pr_registrar_quest`. Correções e exclusões recalculam os níveis envolvidos com as funções do banco. Vínculos de guilda usam `pr_vincular_aventureiro_guilda`; as triggers preservam os requisitos de nível e a recompensa de dungeons já exploradas. As rotinas rodam em transações com `SET LOCAL search_path`, e o ranking materializado é atualizado após mudanças relevantes.
 
@@ -40,7 +40,7 @@ O elenco permite buscar por nome, combinar a classe e ordenar por nível, nome o
 
 O botão **Consultar atlas** mostra as dungeons do banco com dificuldade, recompensa e vitórias/tentativas da guilda atual. É possível buscar, filtrar dificuldade, ordenar por XP e destacar destinos ainda não explorados. Esses números descrevem o histórico, não a chance de vitória futura.
 
-A preparação exige escolher explicitamente um aventureiro permitido e uma dungeon cadastrada, pelo formulário ou pelo atlas. O servidor valida os IDs e guarda a seleção na sessão; ao abrir o painel, consulta novamente os dados atuais. **Escolher um destino não registra uma quest nem muda o nível.** O botão de registrar resultado abre o formulário correspondente; a confirmação grava a quest e aplica a progressão original. O banco não define sorteio ou probabilidade de vitória.
+A preparação exige escolher explicitamente um aventureiro permitido e uma dungeon cadastrada, pelo formulário ou pelo atlas. O servidor valida os IDs e guarda a seleção na sessão; ao abrir o painel, consulta novamente os dados atuais. **Escolher um destino não registra uma quest nem muda o nível.** O administrador usa o botão de registrar resultado para abrir o formulário correspondente; a confirmação grava a quest e aplica a progressão original. O jogador acompanha o histórico. O banco recebe o resultado como parâmetro e não define sorteio ou probabilidade de vitória.
 
 | Método | Rota | Função |
 | --- | --- | --- |
@@ -82,7 +82,7 @@ Abra http://127.0.0.1:8000. Para desenvolver com atualização dos assets, execu
 | GET | `/aventureiros` | Lista, busca, filtra e pagina os aventureiros do protótipo anterior. |
 | POST | `/aventureiro/selecionar` | Valida `aventureiro_id` e salva a escolha na sessão, com proteção CSRF. |
 
-A API usa apenas os prefixos `/api/jogador` e `/api/admin` para os cadastros; as antigas rotas genéricas `/api/{recurso}` foram removidas. Consultas de dungeons são públicas. Jogadores só alteram seus próprios vínculos e registram suas próprias quests; administradores têm o CRUD completo. O registro de quests e o vínculo de guilda por procedures ficam em `POST /api/jogador/quests/registrar`, `POST /api/admin/quests/registrar`, `POST /api/jogador/aventureiros/{id}/guilda` e `POST /api/admin/aventureiros/{id}/guilda`.
+A API usa apenas os prefixos `/api/jogador` e `/api/admin` para os cadastros; as antigas rotas genéricas `/api/{recurso}` foram removidas. Consultas de dungeons são públicas. Jogadores só alteram seus próprios vínculos; administradores têm o CRUD completo. O registro de quests pela procedure fica em `POST /api/admin/quests/registrar`. O vínculo usa `POST /api/jogador/aventureiros/{id}/guilda` ou `POST /api/admin/aventureiros/{id}/guilda`. As antigas tentativas de escrita em `POST /api/jogador/quests`, `POST /api/jogador/quests/registrar` e `POST /perfil/quests` por jogadores retornam **403** antes de gravar ou recalcular qualquer progresso.
 
 Para acompanhar as alterações ao vivo, mantenha `php artisan serve` e `npm run dev -- --host 127.0.0.1` abertos em terminais separados.
 

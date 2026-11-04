@@ -11,6 +11,8 @@ Estrutura conferida em consulta somente leitura em 03/11/2026. O backup foi rest
 
 O acesso usa `aventureiros.nickname` (único, até 50 caracteres), `senha` (até 255 caracteres, permite nulo) e `role` (obrigatório, padrão `jogador`, CHECK para `admin`/`jogador`). Na consulta havia 105 aventureiros: 102 sem senha e três com hash bcrypt; um registro tinha papel administrativo. Nenhuma credencial foi criada, exposta ou redefinida durante a auditoria.
 
+Nova conferência somente leitura em 04/11/2026: a conta administrativa continua com hash bcrypt cadastrado; as duas procedures, as funções e as restrições acima permanecem disponíveis. A senha administrativa existente não foi redefinida. Os testes de entrada usam contas temporárias na restauração local, revertidas ao final de cada teste.
+
 O PDF anterior usava `dungeons_id` e `data_exploracao`. A aplicação foi alinhada aos nomes atuais. A API de quests agora recebe e devolve `dungeon_id` e `data_quest`.
 
 ## Recursos encontrados
@@ -32,7 +34,7 @@ CRUD web e API de guildas, aventureiros, dungeons e quests, com validação e pe
 
 ## Registro de expedições
 
-O perfil permite registrar dungeon escolhida, data e resultado informado para o próprio aventureiro. Administradores também registram quests para outros aventureiros. O formulário impede reenvio duplicado por token. As rotinas usam nomes sem schema no corpo, por isso o service configura `SET LOCAL search_path TO rpg_trabalho_bd, public` na mesma transação antes do `CALL`.
+Somente administradores registram dungeon, data e resultado pelo cadastro de quests ou pela API administrativa. Jogadores escolhem seu destino e consultam o histórico; tentativas de registrar sucesso ou falha pelo perfil ou pela API retornam 403, sem alterar quests, XP ou nível. A procedure recebe o resultado informado pelo administrador e aplica a progressão original; não existe regra automática de vitória no banco. O formulário impede reenvio duplicado por token. As rotinas usam nomes sem schema no corpo, por isso o service configura `SET LOCAL search_path TO rpg_trabalho_bd, public` na mesma transação antes do `CALL`.
 
 O recálculo do banco pode reduzir um nível antigo que não corresponda ao XP registrado. O formulário informa que o nível será recalculado a partir do histórico completo; a preparação do destino continua sem alterar o nível.
 
