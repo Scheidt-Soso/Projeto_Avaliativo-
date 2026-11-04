@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+@import './catalog.css';
+@source '../views/**/*.blade.php';
 @source '../views/guildas/**/*.blade.php';
 @source '../views/components/pixel-*.blade.php';
 @source '../views/components/member-sigil.blade.php';

@@ -13,6 +13,17 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::prefix('cadastros')->name('cadastros.')->group(function () {
+        foreach ([
+            'guildas' => \App\Http\Controllers\Web\GuildaController::class,
+            'aventureiros' => \App\Http\Controllers\Web\AventureiroCadastroController::class,
+            'dungeons' => \App\Http\Controllers\Web\DungeonController::class,
+            'quests' => \App\Http\Controllers\Web\QuestController::class,
+        ] as $recurso => $controller) {
+            Route::resource($recurso, $controller)->parameters([$recurso => 'registro'])
+                ->middlewareFor(['create', 'store', 'edit', 'update', 'destroy'], 'can:gerenciar-cadastros');
+        }
+    });
     Route::get('/', [GuildDashboardController::class, 'index'])->name('guildas.dashboard');
     Route::post('/guildas/{guilda}/expedicao/selecionar', [GuildDashboardController::class, 'selecionarDestino'])->name('guildas.expedicao.selecionar');
     Route::get('/aventureiros', [AventureiroController::class, 'index'])->name('aventureiros.escolher');
