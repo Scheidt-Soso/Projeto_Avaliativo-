@@ -11,6 +11,7 @@ function setMotionState() {
     document.documentElement.classList.toggle('motion-paused', paused);
     if (canvas) canvas.dataset.paused = String(paused);
     motionButton?.setAttribute('aria-pressed', String(paused));
+    motionButton?.setAttribute('aria-label', paused ? 'Retomar animações' : 'Pausar animações');
     const label = motionButton?.querySelector('span');
     if (label) label.textContent = paused ? 'Retomar animações' : 'Pausar animações';
 }
@@ -94,7 +95,25 @@ if (selectedDestination) {
     selectedDestination.focus({ preventScroll: true });
 }
 
-const navItems = [...document.querySelectorAll('.nav-item')];
+document.querySelectorAll('[data-record-form]').forEach((form) => {
+    const button = form.querySelector('button[type="submit"]');
+    const label = button?.querySelector('span');
+    const initial = label?.textContent;
+    let submitting = false;
+    form.addEventListener('submit', (event) => {
+        if (submitting) { event.preventDefault(); return; }
+        submitting = true;
+        if (button) button.disabled = true;
+        if (label) label.textContent = 'SALVANDO...';
+    });
+    window.addEventListener('pageshow', () => {
+        submitting = false;
+        if (button) button.disabled = false;
+        if (label) label.textContent = initial;
+    });
+});
+
+const navItems = [...document.querySelectorAll('.nav-item')].filter((link) => link.hash);
 navItems.forEach((item) => item.addEventListener('click', () => {
     navItems.forEach((link) => link.classList.toggle('is-active', link === item));
 }));

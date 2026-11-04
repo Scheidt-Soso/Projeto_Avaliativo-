@@ -49,6 +49,14 @@ class ProcedureService
         }, 3);
     }
 
+    public function progresso(int $aventureiroId): object
+    {
+        return DB::transaction(function () use ($aventureiroId) {
+            $this->configurarSchema();
+            return DB::selectOne('SELECT xp_total, rpg_trabalho_bd.fn_nivel_por_xp(xp_total) AS nivel_calculado FROM (SELECT rpg_trabalho_bd.fn_total_xp(?) AS xp_total) AS progresso', [$aventureiroId]);
+        });
+    }
+
     private function configurarSchema(): void
     {
         DB::statement('SET LOCAL search_path TO rpg_trabalho_bd, public');

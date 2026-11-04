@@ -12,7 +12,7 @@ class RecordDisplay
         if ($campo === 'sucesso') return $value ? 'Sucesso' : 'Falha';
         if ($value === null || $value === '') return $campo === 'guilda.nome' ? 'Sem guilda' : 'Não informado';
         if (in_array($campo, ['data_fundacao', 'data_quest'])) return Carbon::parse($value)->format('d/m/Y');
-        if ($campo === 'xp_recompensa') return number_format($value, 0, ',', '.').' XP';
+        if (in_array($campo, ['xp_recompensa', 'xp_total_ganho'])) return number_format($value, 0, ',', '.').' XP';
         if ($campo === 'role') return $value === 'admin' ? 'Administrador' : 'Jogador';
 
         return (string) $value;

@@ -16,16 +16,19 @@ class GuildDashboardController extends Controller
 {
     public function __construct(private GuildDashboardService $dashboard) {}
 
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
         $data = $request->validate(['guilda' => ['nullable', 'integer', Rule::exists(Guilda::class, 'id')]]);
-        $dashboard = $this->dashboard->dashboard(isset($data['guilda']) ? (int) $data['guilda'] : null);
+        if (empty($data['guilda']) && $request->user()->role === 'jogador' && $request->user()->guilda_id === null) {
+            return to_route('perfil.show');
+        }
+        $dashboard = $this->dashboard->dashboard(isset($data['guilda']) ? (int) $data['guilda'] : $request->user()->guilda_id);
         $selecao = $request->session()->get('expedicao.selecao');
         $destino = null;
         if (($selecao['guilda_id'] ?? null) === $dashboard['guilda']?->id && $dashboard['guilda']) {
             $aventureiro = $dashboard['guilda']->aventureiros->firstWhere('id', $selecao['aventureiro_id']);
             $dungeon = $dashboard['dungeons']->firstWhere('id', $selecao['dungeon_id']);
-            if ($aventureiro && $dungeon) {
+            if ($aventureiro && $dungeon && ($request->user()->can('gerenciar-cadastros') || $aventureiro->id === $request->user()->id)) {
                 $destino = compact('aventureiro', 'dungeon');
             } else {
                 $request->session()->forget('expedicao.selecao');
@@ -47,6 +50,7 @@ class GuildDashboardController extends Controller
             'dungeon_id.required' => 'Escolha a dungeon da expedição.',
             'dungeon_id.exists' => 'Esta dungeon não está mais cadastrada. Escolha outro destino.',
         ]);
+        abort_unless($request->user()->can('gerenciar-cadastros') || (int) $data['aventureiro_id'] === $request->user()->id, 403);
         $request->session()->put('expedicao.selecao', [
             'guilda_id' => $guilda->id,
             'aventureiro_id' => (int) $data['aventureiro_id'],

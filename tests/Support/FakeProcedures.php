@@ -38,4 +38,10 @@ class FakeProcedures extends ProcedureService
         return (int) DB::table('rpg_trabalho_bd.quests as q')->join('rpg_trabalho_bd.dungeons as d', 'd.id', '=', 'q.dungeon_id')
             ->where('q.aventureiro_id', $id)->where('q.sucesso', true)->sum('d.xp_recompensa');
     }
+
+    public function progresso(int $aventureiroId): object
+    {
+        $xp = $this->xp($aventureiroId);
+        return (object) ['xp_total' => $xp, 'nivel_calculado' => min(1 + intdiv($xp, 1000), 100)];
+    }
 }

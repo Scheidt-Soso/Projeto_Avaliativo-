@@ -1,31 +1,7 @@
-<!doctype html>
-<html lang="pt-BR">
-<head>
-    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="O quartel da sua guilda. Gerencie aventureiros, descubra dungeons e acompanhe cada expedição.">
-    <title>{{ $guilda?->nome ?? 'Guildas' }} · Coroa de Cinzas</title>
-    <link rel="preload" href="{{ Vite::asset('public/fonts/VT323-Regular.ttf') }}" as="font" type="font/ttf" crossorigin>
-    @vite(['resources/css/guild.css', 'resources/js/guild.js'])
-</head>
-<body class="guild-app">
-    <a class="skip-link" href="#quartel">Ir ao painel</a>
-    <aside class="sidebar">
-        <a class="wordmark" href="{{ route('guildas.dashboard') }}"><span class="wordmark-icon"><x-pixel-icon name="shield" /></span><span>COROA<br>DE CINZAS<small>GUILD MANAGER / 01</small></span></a>
-        <div class="sidebar-label">SEU TERRITÓRIO</div>
-        <nav class="main-nav" aria-label="Seções do painel">
-            <a href="#quartel" class="nav-item is-active"><x-pixel-icon name="flag" /><span>Quartel</span><small>01</small></a>
-            <a href="#membros" class="nav-item"><x-pixel-icon name="people" /><span>Membros</span><small>{{ $resumo['membros'] }}</small></a>
-            <a href="#expedicoes" class="nav-item"><x-pixel-icon name="door" /><span>Expedições</span><small>↗</small></a>
-            <a href="#cronicas" class="nav-item"><x-pixel-icon name="book" /><span>Crônicas</span><small>{{ $resumo['quests'] }}</small></a>
-        </nav>
-        <div class="sidebar-message"><span class="tiny-star">✦</span><p>Um nome pode cair.<br>Uma guilda permanece.</p></div>
-        <div class="sidebar-bottom"><span class="connection-dot"></span> QUARTEL CONECTADO<span class="version-tag">v.02</span></div>
-    </aside>
-    <div class="workspace">
-        <header class="topbar"><span class="breadcrumb">ARQUIVO <span>/</span> GUILDAS <span>/</span> <b>QUARTEL</b></span><div class="topbar-actions"><button type="button" class="motion-toggle" aria-pressed="false" data-motion-toggle><x-pixel-icon name="pause" /><span>Pausar animações</span></button><span class="topbar-divider"></span><button class="guild-switch" type="button" data-open-guilds><x-pixel-icon name="shield" /><span>{{ $guilda?->nome ?? 'Escolher guilda' }}</span><x-pixel-icon name="chevron" /></button>@include('guildas.partials.account')</div></header>
-        <main>
-            @if (session('sucesso'))<div class="system-message" role="status"><x-pixel-icon name="check" /><p>{{ session('sucesso') }}</p></div>@endif
-            @if ($errors->any())<div class="system-message error" role="alert"><x-pixel-icon name="close" /><p>{{ $errors->first() }}</p></div>@endif
+<x-app-shell :title="$guilda?->nome ?? 'Guildas'" active="quartel" :guilda="$guilda">
+    <x-slot:actions>
+        <button class="guild-switch" type="button" data-open-guilds><x-pixel-icon name="shield" /><span>{{ $guilda?->nome ?? 'Escolher guilda' }}</span><x-pixel-icon name="chevron" /></button>
+    </x-slot:actions>
             <section class="dashboard-heading" id="quartel"><div><p class="eyebrow"><span class="square-dot"></span> A BANDEIRA AINDA ESTÁ DE PÉ</p><h1>{{ $guilda?->nome ?? 'Nenhuma guilda encontrada' }}<span class="cursor-mark" aria-hidden="true">_</span></h1><p class="heading-description">{{ $resumo['membros'] }} aventureiros. Uma bandeira. Histórias que ainda não terminaram.</p></div><div class="guild-identification"><span class="identification-number">#{{ str_pad($guilda?->id ?? 0, 3, '0', STR_PAD_LEFT) }}</span><small>REGISTRO DA GUILDA</small>@if ($guilda?->data_fundacao)<span class="founding-date">DESDE {{ \Carbon\Carbon::parse($guilda->data_fundacao)->format('d.m.Y') }}</span>@endif</div></section>
             <section class="stats-strip" aria-label="Estatísticas da guilda">
                 <div><span class="stat-label">MEMBROS</span><strong data-count="{{ $resumo['membros'] }}">{{ str_pad($resumo['membros'], 2, '0', STR_PAD_LEFT) }}</strong><small>sob a mesma bandeira</small></div>
@@ -43,11 +19,9 @@
                     <section class="chronicle-section" id="cronicas" aria-labelledby="chronicle-title"><div class="section-heading"><h2 id="chronicle-title"><span class="section-number">04</span> ECOS DO QUARTEL</h2><span class="section-caption">ÚLTIMOS REGISTROS</span></div><ol class="chronicle-list">@forelse ($historico as $quest)<li><span class="chronicle-marker {{ $quest->sucesso ? 'is-success' : '' }}" aria-label="{{ $quest->sucesso ? 'Sucesso' : 'Derrota' }}">{{ $quest->sucesso ? '+' : '×' }}</span><div><p><strong>{{ $quest->aventureiro?->nickname ?? 'Aventureiro removido' }}</strong> {{ $quest->sucesso ? 'retornou de' : 'foi derrotado em' }} <strong>{{ $quest->dungeon?->nome ?? 'Dungeon removida' }}</strong>.</p><span>{{ \Carbon\Carbon::parse($quest->data_quest)->format('d.m.Y') }} <i>/</i> {{ $quest->sucesso ? '+'.($quest->dungeon?->xp_recompensa ?? 0).' XP' : 'SEM RECOMPENSA' }}</span></div></li>@empty<li class="empty-copy">* O arquivo está em silêncio. A primeira história ainda será escrita.</li>@endforelse</ol></section>
                 </div>
             </div>
-            <footer class="dashboard-footer"><span><x-pixel-icon name="heart" /> A DETERMINAÇÃO É COLETIVA.</span><span>COROA DE CINZAS <i>©</i> 2026</span></footer>
-        </main>
-    </div>
     <dialog class="pixel-dialog guild-picker" aria-labelledby="guild-picker-title"><button class="dialog-close" type="button" data-close-dialog aria-label="Fechar"><x-pixel-icon name="close" /></button><p class="eyebrow">OUTRAS BANDEIRAS</p><h2 id="guild-picker-title">Escolha seu quartel.</h2><p class="dialog-description">Cada guilda tem seus próprios nomes e histórias.</p><div class="guild-list">@foreach ($guildas as $item)<a href="{{ route('guildas.dashboard', ['guilda' => $item->id]) }}" class="guild-option {{ $item->id === $guilda?->id ? 'is-current' : '' }}"><x-pixel-icon name="shield" /><span><strong>{{ $item->nome }}</strong><small>{{ $item->aventureiros_count }} MEMBROS · NÍVEL MÍNIMO {{ $item->nivel_minimo }}</small></span><span>{{ $item->id === $guilda?->id ? '◀' : '↗' }}</span></a>@endforeach</div></dialog>
     <dialog class="pixel-dialog member-dialog" aria-labelledby="member-dialog-title"><button class="dialog-close" type="button" data-close-dialog aria-label="Fechar"><x-pixel-icon name="close" /></button><p class="eyebrow">FICHA DO AVENTUREIRO</p><h2 id="member-dialog-title" data-detail-name></h2><dl class="member-details"><div><dt>CLASSE</dt><dd data-detail-class></dd></div><div><dt>NÍVEL</dt><dd data-detail-level></dd></div><div><dt>EXPEDIÇÕES</dt><dd data-detail-quests></dd></div><div><dt>GUILDA</dt><dd>{{ $guilda?->nome }}</dd></div></dl><button class="primary-action" type="button" data-choose-member>PREPARAR EXPEDIÇÃO <x-pixel-icon name="arrow" /></button></dialog>
     @include('guildas.partials.dungeon-atlas')
     <div class="expedition-loading" hidden role="status" aria-live="polite"><div class="loading-sigil"><x-pixel-icon name="flag" /></div><p>SALVANDO DESTINO<span>...</span></p><small>ANOTANDO O CAMINHO ESCOLHIDO</small></div>
-</body></html>
+
+</x-app-shell>

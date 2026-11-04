@@ -39,6 +39,7 @@ class AventureiroService extends CrudService
                 if ($guildaId !== null) $this->procedures->vincularAventureiroGuilda($registro->id, (int) $guildaId);
                 else $registro->update(['guilda_id' => null]);
             }
+            if (array_key_exists('nickname', $dados)) $this->procedures->recalcularNiveis([]);
 
             return $registro->refresh()->load('guilda');
         }, 3);

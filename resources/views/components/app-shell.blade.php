@@ -32,7 +32,7 @@
             <a class="breadcrumb" href="{{ route('guildas.dashboard') }}">ARQUIVO <span>/</span> <b>{{ $title }}</b></a>
             <div class="topbar-actions">
                 <button type="button" class="motion-toggle" aria-label="Pausar animações" aria-pressed="false" data-motion-toggle><x-pixel-icon name="pause" /><span>Pausar animações</span></button>
-                @if (isset($actions)) {{ $actions }} @else <a class="guild-switch" href="{{ route('guildas.dashboard') }}"><x-pixel-icon name="flag" /><span>Meu quartel</span></a> @endif
+                @if (isset($actions)) {{ $actions }} @else <a class="guild-switch" href="{{ auth()->user()->guilda_id ? route('guildas.dashboard', ['guilda' => auth()->user()->guilda_id]) : route('cadastros.guildas.index') }}"><x-pixel-icon name="flag" /><span>{{ auth()->user()->guilda_id ? 'Meu quartel' : 'Ver guildas' }}</span></a> @endif
                 @include('guildas.partials.account')
             </div>
         </header>

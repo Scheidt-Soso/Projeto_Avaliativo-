@@ -59,6 +59,7 @@ class PostgreSqlRulesTest extends TestCase
         $this->assertSame(1500, (int) $sucesso->xp_total);
         $this->assertSame(2, (int) $sucesso->nivel_atual);
         $this->assertSame(2, $this->aventureiro->fresh()->nivel);
+        $this->assertSame(1500, (int) $procedures->progresso($this->aventureiro->id)->xp_total);
         $this->assertSame($this->dungeon->id, Quest::findOrFail($sucesso->quest_id)->dungeon_id);
         $this->assertSame(1500, (int) DB::table('rpg_trabalho_bd.vw_matheusayres_ranking_xp')->where('nickname', $this->aventureiro->nickname)->value('xp_total_ganho'));
     }

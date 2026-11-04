@@ -110,6 +110,12 @@ class GuildDashboardTest extends TestCase
             ->assertSessionHasErrors('aventureiro_id')->assertSessionMissing('expedicao.selecao');
     }
 
+    public function test_jogador_nao_prepara_expedicao_para_outro_membro_da_mesma_guilda(): void
+    {
+        $this->post('/guildas/1/expedicao/selecionar', ['aventureiro_id' => 2, 'dungeon_id' => 1])
+            ->assertForbidden()->assertSessionMissing('expedicao.selecao');
+    }
+
     public function test_destino_de_outra_guilda_nao_aparece_no_painel(): void
     {
         $this->withSession(['expedicao.selecao' => ['guilda_id' => 2, 'aventureiro_id' => 3, 'dungeon_id' => 2]])
