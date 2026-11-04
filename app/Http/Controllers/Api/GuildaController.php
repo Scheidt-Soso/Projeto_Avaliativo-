@@ -23,11 +23,8 @@ class GuildaController extends Controller
 
     public function store(Request $request): GuildaResource
     {
-        $dados = $request->validate([
-            'nome' => ['required', 'string', 'max:100'],
-            'nivel_minimo' => ['nullable', 'integer', 'min:1'],
-            'data_fundacao' => ['nullable', 'date'],
-        ]);
+        $request->mergeIfMissing(['nivel_minimo' => 1]);
+        $dados = $request->validate(\App\Support\RecordRules::for('guildas'));
 
         return new GuildaResource($this->service->criar($dados));
     }
@@ -39,11 +36,7 @@ class GuildaController extends Controller
 
     public function update(Request $request, Guilda $guilda): GuildaResource
     {
-        $dados = $request->validate([
-            'nome' => ['sometimes', 'required', 'string', 'max:100'],
-            'nivel_minimo' => ['nullable', 'integer', 'min:1'],
-            'data_fundacao' => ['nullable', 'date'],
-        ]);
+        $dados = $request->validate(\App\Support\RecordRules::for('guildas', $guilda->id, true));
 
         return new GuildaResource($this->service->atualizar($guilda, $dados));
     }

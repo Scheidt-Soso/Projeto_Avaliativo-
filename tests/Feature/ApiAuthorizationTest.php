@@ -93,4 +93,29 @@ class ApiAuthorizationTest extends TestCase
         $this->postJson('/api/login', ['nickname' => 'Jogador', 'senha' => 'errada'])
             ->assertUnauthorized();
     }
+
+    public function test_api_rejeita_quest_futura_e_ids_nao_numericos_sem_erro_de_servidor(): void
+    {
+        Sanctum::actingAs(Aventureiro::findOrFail(1));
+        $this->postJson('/api/jogador/quests', ['dungeon_id' => 1, 'data_quest' => now()->addDay()->toDateString(), 'sucesso' => true])
+            ->assertUnprocessable()->assertJsonValidationErrors('data_quest');
+        $this->getJson('/api/dungeons/invalida')->assertNotFound();
+        $this->assertSame(0, Quest::count());
+    }
+
+    public function test_api_admin_nao_permite_excluir_ou_rebaixar_a_propria_conta(): void
+    {
+        Sanctum::actingAs(Aventureiro::findOrFail(3));
+        $this->patchJson('/api/admin/aventureiros/3', ['role' => 'jogador'])->assertUnprocessable()->assertJsonValidationErrors('role');
+        $this->deleteJson('/api/admin/aventureiros/3')->assertUnprocessable();
+        $this->assertSame('admin', Aventureiro::findOrFail(3)->role);
+    }
+
+    public function test_cadastro_da_api_usa_hash_papel_padrao_e_limite_de_senha(): void
+    {
+        $senha = str_repeat('é', 40);
+        $this->postJson('/api/register', ['nickname' => 'Novo', 'classe' => 'Mago', 'senha' => $senha, 'senha_confirmation' => $senha])->assertUnprocessable();
+        $cadastro = $this->postJson('/api/register', ['nickname' => 'Novo', 'classe' => 'Mago', 'senha' => 'nova-senha', 'senha_confirmation' => 'nova-senha', 'role' => 'admin', 'nivel' => 99])->assertCreated()->assertJsonPath('aventureiro.role', 'jogador')->assertJsonMissingPath('aventureiro.senha');
+        $this->assertTrue(Hash::check('nova-senha', Aventureiro::where('nickname', 'Novo')->firstOrFail()->senha));
+    }
 }

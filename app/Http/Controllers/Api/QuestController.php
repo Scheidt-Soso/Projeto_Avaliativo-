@@ -30,9 +30,10 @@ class QuestController extends Controller
     /** Registra o resultado de uma expedição pela API. */
     public function store(Request $request): QuestResource
     {
+        $request->mergeIfMissing(['data_quest' => now()->toDateString()]);
         $regras = [
             'dungeon_id' => ['required', 'integer', Rule::exists(Dungeon::class, 'id')],
-            'data_quest' => ['nullable', 'date'],
+            'data_quest' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
             'sucesso' => ['required', 'boolean'],
         ];
 
@@ -53,7 +54,7 @@ class QuestController extends Controller
     {
         $regras = [
             'dungeon_id' => ['required', 'integer', Rule::exists(Dungeon::class, 'id')],
-            'data_quest' => ['required', 'date', 'before_or_equal:today'],
+            'data_quest' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
             'sucesso' => ['required', 'boolean'],
         ];
 
@@ -75,6 +76,7 @@ class QuestController extends Controller
                 $dados['sucesso'],
             );
         } catch (QueryException $e) {
+            if (! \App\Support\DatabaseError::isValidation($e)) throw $e;
             return response()->json(['message' => $this->mensagemDoBanco($e)], 422);
         }
 
@@ -92,12 +94,7 @@ class QuestController extends Controller
 
     public function update(Request $request, Quest $quest): QuestResource
     {
-        $dados = $request->validate([
-            'aventureiro_id' => ['sometimes', 'required', 'integer', Rule::exists(Aventureiro::class, 'id')],
-            'dungeon_id' => ['sometimes', 'required', 'integer', Rule::exists(Dungeon::class, 'id')],
-            'data_quest' => ['sometimes', 'required', 'date'],
-            'sucesso' => ['sometimes', 'required', 'boolean'],
-        ]);
+        $dados = $request->validate(\App\Support\RecordRules::for('quests', $quest->id, true));
 
         return new QuestResource($this->service->atualizar($quest, $dados));
     }

@@ -23,11 +23,7 @@ class DungeonController extends Controller
 
     public function store(Request $request): DungeonResource
     {
-        $dados = $request->validate([
-            'nome' => ['required', 'string', 'max:100'],
-            'dificuldade' => ['nullable', 'string', 'max:20'],
-            'xp_recompensa' => ['required', 'integer', 'min:0'],
-        ]);
+        $dados = $request->validate(\App\Support\RecordRules::for('dungeons'));
 
         return new DungeonResource($this->service->criar($dados));
     }
@@ -39,11 +35,7 @@ class DungeonController extends Controller
 
     public function update(Request $request, Dungeon $dungeon): DungeonResource
     {
-        $dados = $request->validate([
-            'nome' => ['sometimes', 'required', 'string', 'max:100'],
-            'dificuldade' => ['nullable', 'string', 'max:20'],
-            'xp_recompensa' => ['sometimes', 'required', 'integer', 'min:0'],
-        ]);
+        $dados = $request->validate(\App\Support\RecordRules::for('dungeons', $dungeon->id, true));
 
         return new DungeonResource($this->service->atualizar($dungeon, $dados));
     }

@@ -16,28 +16,21 @@ class AuthController extends Controller
         $dados = $request->validate([
             'nickname' => ['required', 'string', 'max:50', Rule::unique(Aventureiro::class, 'nickname')],
             'classe' => ['required', 'string', 'max:50'],
-            'senha' => ['required', 'string', 'min:6', 'confirmed'],
+            'senha' => \App\Support\RecordRules::password(),
         ]);
 
-        $aventureiro = Aventureiro::create([
-            'nickname' => $dados['nickname'],
-            'classe' => $dados['classe'],
-            'senha' => Hash::make($dados['senha']),
-            'role' => 'jogador',
-            'nivel' => 1,
-        ]);
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($dados) {
+            $aventureiro = app(\App\Services\LoginService::class)->register($dados);
 
-        return response()->json([
-            'aventureiro' => $aventureiro,
-            'token' => $aventureiro->createToken('api')->plainTextToken,
-        ], 201);
+            return response()->json(['aventureiro' => $aventureiro, 'token' => $aventureiro->createToken('api')->plainTextToken], 201);
+        });
     }
 
     public function login(Request $request): JsonResponse
     {
         $dados = $request->validate([
-            'nickname' => ['required', 'string'],
-            'senha' => ['required', 'string'],
+            'nickname' => ['required', 'string', 'max:50'],
+            'senha' => ['required', 'string', 'max:255'],
         ]);
 
         $aventureiro = Aventureiro::where('nickname', $dados['nickname'])->first();
@@ -54,7 +47,16 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $token = $request->user()->currentAccessToken();
+        if ($token instanceof \Laravel\Sanctum\PersonalAccessToken) {
+            $token->delete();
+        } else {
+            \Illuminate\Support\Facades\Auth::guard('web')->logout();
+            if ($request->hasSession()) {
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
+        }
 
         return response()->json(['message' => 'Token revogado com sucesso.']);
     }

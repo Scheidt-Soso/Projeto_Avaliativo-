@@ -28,12 +28,10 @@ class AventureiroController extends Controller
 
     public function store(Request $request): AventureiroResource
     {
-        $dados = $request->validate([
-            'nickname' => ['required', 'string', 'max:50', Rule::unique(Aventureiro::class, 'nickname')],
-            'classe' => ['required', 'string', 'max:50'],
-            'nivel' => ['nullable', 'integer', 'min:1'],
-            'guilda_id' => ['nullable', 'integer', Rule::exists(Guilda::class, 'id')],
-        ]);
+        $request->mergeIfMissing(['nivel' => 1, 'role' => 'jogador']);
+        $rules = \App\Support\RecordRules::for('aventureiros');
+        if ($request->filled('senha')) $rules['senha'] = \App\Support\RecordRules::password();
+        $dados = $request->validate($rules);
 
         return new AventureiroResource($this->service->criar($dados));
     }
@@ -51,6 +49,7 @@ class AventureiroController extends Controller
         try {
             $this->procedures->vincularAventureiroGuilda($aventureiro->id, $dados['guilda_id']);
         } catch (QueryException $e) {
+            if (! \App\Support\DatabaseError::isValidation($e)) throw $e;
             return response()->json(['message' => $this->mensagemDoBanco($e)], 422);
         }
 
@@ -64,18 +63,19 @@ class AventureiroController extends Controller
 
     public function update(Request $request, Aventureiro $aventureiro): AventureiroResource
     {
-        $dados = $request->validate([
-            'nickname' => ['sometimes', 'required', 'string', 'max:50', Rule::unique(Aventureiro::class, 'nickname')->ignore($aventureiro->id)],
-            'classe' => ['sometimes', 'required', 'string', 'max:50'],
-            'nivel' => ['nullable', 'integer', 'min:1'],
-            'guilda_id' => ['nullable', 'integer', Rule::exists(Guilda::class, 'id')],
-        ]);
+        $dados = $request->validate(\App\Support\RecordRules::for('aventureiros', $aventureiro->id, true));
+        if ($aventureiro->id === $request->user()->id && isset($dados['role']) && $dados['role'] !== 'admin') {
+            throw \Illuminate\Validation\ValidationException::withMessages(['role' => 'Mantenha o acesso administrativo da sua própria conta.']);
+        }
 
         return new AventureiroResource($this->service->atualizar($aventureiro, $dados));
     }
 
-    public function destroy(Aventureiro $aventureiro): JsonResponse
+    public function destroy(Request $request, Aventureiro $aventureiro): JsonResponse
     {
+        if ($aventureiro->id === $request->user()->id) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['aventureiro' => 'Sua conta não pode ser excluída durante esta sessão.']);
+        }
         $this->service->excluir($aventureiro);
 
         return response()->json(null, 204);
