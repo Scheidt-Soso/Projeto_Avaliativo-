@@ -1,0 +1,46 @@
+{
+    "data": "2026-11-04",
+    "origem": "snapshot consistente em transacao somente leitura",
+    "arquivo": "SQL/projeto_completo.sql",
+    "sha256": "c2440a376e24c6b587eb1aa84aa180529a53e225e4140ee3acf4c40038b7c71a",
+    "registros": {
+        "guildas": 15,
+        "aventureiros": 107,
+        "dungeons": 20,
+        "quests": 207
+    },
+    "objetos": {
+        "SCHEMA": 1,
+        "FUNCTION": 5,
+        "PROCEDURE": 2,
+        "TABLE": 14,
+        "SEQUENCE": 9,
+        "SEQUENCE OWNED BY": 9,
+        "VIEW": 4,
+        "MATERIALIZED VIEW": 1,
+        "DEFAULT": 9,
+        "CONSTRAINT": 18,
+        "INDEX": 11,
+        "TRIGGER": 2,
+        "FK CONSTRAINT": 3
+    },
+    "validacao": {
+        "postgresql_local": "18.6",
+        "importacao_banco_vazio": true,
+        "dados_comparados_integralmente": true,
+        "registros_restaurados": {
+            "guildas": 15,
+            "aventureiros": 107,
+            "dungeons": 20,
+            "quests": 207
+        },
+        "sequences_validas": true,
+        "senhas_tokens_sessoes_ausentes": true,
+        "reexecucao_recusa_schema_existente_sem_alterar_dados": true,
+        "suite_aplicacao_postgresql": {
+            "testes_aprovados": 11,
+            "verificacoes": 112,
+            "executada_sobre_banco_criado_pelo_arquivo_unico": true
+        }
+    }
+}

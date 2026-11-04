@@ -27,6 +27,6 @@ A conta administrativa existente possui hash bcrypt, conferido em consulta somen
 
 Esta conferência valida as respostas HTTP e o comportamento do banco. Não substitui a revisão visual no navegador em diferentes tamanhos de tela.
 
-O ambiente usa o schema original já existente. Não execute migrations ou restauração sobre o banco compartilhado para iniciar o site; a instalação em um banco vazio exige preparar esse schema separadamente. O snapshot em `database/schema/rpg_trabalho_bd.sql` é uma exportação para `psql`, não uma migration Laravel.
+O ambiente usa o schema original já existente. Não execute migrations ou restauração sobre o banco compartilhado para iniciar o site. Para uma instalação em banco vazio, o arquivo único `SQL/projeto_completo.sql` agora prepara toda a estrutura e os dados, sem senhas/tokens/sessões. O snapshot antigo em `database/schema/rpg_trabalho_bd.sql` continua sendo uma exportação apenas de estrutura para `psql`, não uma migration Laravel.
 
 O relatório acadêmico em PDF e a apresentação/defesa ainda precisam ser finalizados separadamente. A evidência sanitizada de restauração já está em `docs/evidencias/restauracao.json`; o dump com dados reais permanece local, fora do Git.

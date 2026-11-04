@@ -2,6 +2,14 @@
 
 Aplicação do projeto bimestral de Banco de Dados II e Back-end, com Laravel 12, Blade, PostgreSQL no Neon e Vite/Tailwind. O produto agora é um gerenciador de guildas, centrado no banco original de guildas, aventureiros, dungeons e quests.
 
+## Entrega em um único SQL
+
+O arquivo [SQL/projeto_completo.sql](SQL/projeto_completo.sql) reúne a estrutura completa, dados de guildas/aventureiros/dungeons/quests, sequences, constraints, índices, funções, procedures, triggers e as cinco views originais, incluindo o ranking materializado. Foi exportado em uma leitura consistente de 04/11/2026: 15 guildas, 107 aventureiros, 20 dungeons e 207 quests.
+
+Execute o arquivo inteiro em **um banco PostgreSQL vazio** pelo pgAdmin, DBeaver ou `psql -v ON_ERROR_STOP=1 -d nome_do_banco_novo -f SQL/projeto_completo.sql`. A criação usa uma transação e recusa um schema já existente sem apagar seus dados. O cabeçalho contém as instruções de execução; os exemplos de uso e backup estão comentados no final.
+
+Senhas, tokens, sessões e dados internos de acesso não são exportados. As senhas dos aventureiros ficam nulas na nova instalação; para testar o login nesse banco, o responsável precisa definir uma senha por hash para a conta escolhida. As senhas do banco original permanecem intactas. A evidência da importação e da comparação integral está em [docs/evidencias/sql-unico.json](docs/evidencias/sql-unico.json).
+
 ## Autenticação
 
 O login usa `nickname` e `senha` da própria tabela `rpg_trabalho_bd.aventureiros`. A model é o usuário da sessão Laravel; não é preciso criar uma conta em `users`, adicionar e-mail, token de permanência ou executar migrations. Senhas são verificadas por hash, nunca devolvidas em JSON ou mantidas no formulário após erro. Entrar renova a sessão; sair invalida a sessão e as seleções anteriores.
