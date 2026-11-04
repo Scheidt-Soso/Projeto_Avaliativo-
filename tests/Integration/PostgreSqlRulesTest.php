@@ -9,11 +9,14 @@ use App\Models\Quest;
 use App\Services\AventureiroService;
 use App\Services\DungeonService;
 use App\Services\GuildaService;
+use App\Services\GuildDashboardService;
 use App\Services\ProcedureService;
 use App\Services\QuestService;
 use App\Support\DatabaseError;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -117,6 +120,89 @@ class PostgreSqlRulesTest extends TestCase
         $nickname = 'Rollback_'.Str::random(10);
         $this->rejeita(fn () => app(AventureiroService::class)->criar(['nickname' => $nickname, 'classe' => 'Mago', 'nivel' => 1, 'guilda_id' => $this->guilda->id]), 'insuficiente');
         $this->assertFalse(Aventureiro::where('nickname', $nickname)->exists());
+    }
+
+    public function test_login_admin_web_abre_paineis_e_registra_quest_com_o_banco_real(): void
+    {
+        $this->aventureiro->update(['role' => 'admin', 'senha' => Hash::make('senha-admin-de-teste')]);
+        $this->post('/login', ['nickname' => $this->aventureiro->nickname, 'senha' => 'incorreta'])->assertSessionHasErrors('nickname');
+        $this->assertGuest();
+        $this->post('/login', ['nickname' => $this->aventureiro->nickname, 'senha' => 'senha-admin-de-teste'])
+            ->assertRedirect(route('guildas.dashboard'));
+        $this->assertAuthenticatedAs($this->aventureiro);
+        $this->get('/admin/dashboard')->assertRedirect('/');
+        $this->get('/')->assertOk();
+        $this->get('/perfil')->assertOk()->assertSee('REGISTRAR RESULTADO');
+        foreach (['guildas', 'aventureiros', 'dungeons', 'quests'] as $recurso) {
+            $this->get('/cadastros/'.$recurso)->assertOk();
+            $this->get('/cadastros/'.$recurso.'/create')->assertOk();
+        }
+        foreach (['ranking', 'vinculos', 'inativos', 'dungeons', 'sucessos'] as $relatorio) {
+            $this->get('/relatorios?aba='.$relatorio)->assertOk()->assertViewHas('aba', $relatorio);
+        }
+        $this->post('/cadastros/quests', [
+            'submission_token' => (string) Str::uuid(), 'aventureiro_id' => $this->aventureiro->id,
+            'dungeon_id' => $this->dungeon->id, 'data_quest' => '2026-11-01', 'sucesso' => true,
+        ])->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertSame(2, $this->aventureiro->fresh()->nivel);
+        $this->assertSame(1, $this->aventureiro->quests()->count());
+        $this->post('/logout')->assertRedirect(route('login'));
+        $this->assertGuest();
+        $this->get('/cadastros/quests/create')->assertRedirect(route('login'));
+    }
+
+    public function test_login_admin_api_emite_token_registra_resultados_e_revoga_acesso(): void
+    {
+        $this->aventureiro->update(['role' => 'admin', 'senha' => Hash::make('senha-admin-de-teste')]);
+        $this->postJson('/api/login', ['nickname' => $this->aventureiro->nickname, 'senha' => 'incorreta'])->assertUnauthorized();
+        $login = $this->postJson('/api/login', ['nickname' => $this->aventureiro->nickname, 'senha' => 'senha-admin-de-teste'])
+            ->assertOk()->assertJsonPath('aventureiro.role', 'admin')->assertJsonMissingPath('aventureiro.senha');
+        $this->withToken($login->json('token'))->getJson('/api/admin/quests')->assertOk();
+        $dados = ['aventureiro_id' => $this->aventureiro->id, 'dungeon_id' => $this->dungeon->id, 'data_quest' => '2026-11-01'];
+        $this->postJson('/api/admin/quests', $dados + ['sucesso' => false])->assertCreated()->assertJsonPath('data.sucesso', false);
+        $this->assertSame(1, $this->aventureiro->fresh()->nivel);
+        $this->postJson('/api/admin/quests/registrar', $dados + ['sucesso' => true])
+            ->assertCreated()->assertJsonPath('xp_total', 1500)->assertJsonPath('nivel_atual', 2);
+        $this->assertSame(2, $this->aventureiro->quests()->count());
+        $this->postJson('/api/logout')->assertOk();
+        $this->assertSame(0, $this->aventureiro->tokens()->count());
+        Auth::forgetGuards();
+        $this->getJson('/api/admin/quests')->assertUnauthorized();
+    }
+
+    public function test_jogador_nao_consegue_gravar_resultado_no_postgresql(): void
+    {
+        $this->actingAs($this->aventureiro);
+        $dados = ['aventureiro_id' => $this->aventureiro->id, 'dungeon_id' => $this->dungeon->id,
+            'data_quest' => '2026-11-01', 'submission_token' => (string) Str::uuid()];
+        foreach ([true, false] as $sucesso) {
+            foreach (['/perfil/quests', '/cadastros/quests', '/api/jogador/quests', '/api/jogador/quests/registrar', '/api/admin/quests', '/api/admin/quests/registrar'] as $rota) {
+                $this->postJson($rota, $dados + ['sucesso' => $sucesso])->assertForbidden();
+            }
+        }
+        $this->assertSame(0, $this->aventureiro->quests()->count());
+        $this->assertSame(1, $this->aventureiro->fresh()->nivel);
+        $this->assertSame(0, (int) app(ProcedureService::class)->progresso($this->aventureiro->id)->xp_total);
+    }
+
+    public function test_atlas_carrega_cinco_resultados_reais_por_dungeon_no_postgresql(): void
+    {
+        app(ProcedureService::class)->vincularAventureiroGuilda($this->aventureiro->id, $this->guilda->id);
+        $outra = Dungeon::create(['nome' => 'Outra '.Str::random(10), 'dificuldade' => 'Fácil', 'xp_recompensa' => 500]);
+        foreach ([$this->dungeon->id, $outra->id] as $dungeonId) {
+            foreach (range(1, 7) as $dia) {
+                Quest::create(['aventureiro_id' => $this->aventureiro->id, 'dungeon_id' => $dungeonId,
+                    'data_quest' => '2026-10-'.str_pad($dia, 2, '0', STR_PAD_LEFT), 'sucesso' => $dia % 2 === 0]);
+            }
+        }
+        $dungeons = app(GuildDashboardService::class)->dashboard($this->guilda->id)['dungeons']->keyBy('id');
+        foreach ([$this->dungeon->id, $outra->id] as $dungeonId) {
+            $this->assertSame(3, $dungeons[$dungeonId]->guild_successes_count);
+            $this->assertSame(4, $dungeons[$dungeonId]->guild_failures_count);
+            $this->assertCount(5, $dungeons[$dungeonId]->quests);
+            $this->assertFalse($dungeons[$dungeonId]->quests->first()->sucesso);
+            $this->assertSame($this->aventureiro->nickname, $dungeons[$dungeonId]->quests->first()->aventureiro->nickname);
+        }
     }
 
     private function rejeita(callable $operacao, string $trecho): void

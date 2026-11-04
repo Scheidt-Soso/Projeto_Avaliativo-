@@ -59,18 +59,34 @@ class ApiAuthorizationTest extends TestCase
         $this->getJson('/api/admin/guildas')->assertOk();
     }
 
-    public function test_jogador_registra_quest_sempre_para_si_mesmo(): void
+    public function test_jogador_nao_define_resultado_nem_pela_api_antiga_ou_administrativa(): void
     {
         Sanctum::actingAs(Aventureiro::findOrFail(1));
 
-        $this->postJson('/api/jogador/quests', [
-            'aventureiro_id' => 2,
-            'dungeon_id' => 1,
-            'data_quest' => '2026-11-01',
-            'sucesso' => true,
-        ])->assertCreated()->assertJsonPath('data.aventureiro_id', 1);
+        foreach ([true, false] as $sucesso) {
+            foreach (['/api/jogador/quests', '/api/jogador/quests/registrar', '/api/admin/quests', '/api/admin/quests/registrar'] as $rota) {
+                $this->postJson($rota, [
+                    'aventureiro_id' => 2, 'dungeon_id' => 1,
+                    'data_quest' => '2026-11-01', 'sucesso' => $sucesso,
+                    'role' => 'admin', 'nivel' => 99, 'xp_total' => 99999,
+                ])->assertForbidden();
+            }
+        }
 
-        $this->assertSame(1, Quest::query()->value('aventureiro_id'));
+        $this->assertSame(0, Quest::count());
+        $this->assertSame(5, Aventureiro::findOrFail(1)->nivel);
+        $this->assertSame(5, Aventureiro::findOrFail(2)->nivel);
+        $this->assertSame('jogador', Aventureiro::findOrFail(1)->role);
+    }
+
+    public function test_jogador_nao_corrige_nem_exclui_resultado_existente(): void
+    {
+        $quest = Quest::create(['aventureiro_id' => 1, 'dungeon_id' => 1, 'data_quest' => '2026-11-01', 'sucesso' => false]);
+        Sanctum::actingAs(Aventureiro::findOrFail(1));
+        $this->patchJson('/api/admin/quests/'.$quest->id, ['sucesso' => true])->assertForbidden();
+        $this->deleteJson('/api/admin/quests/'.$quest->id)->assertForbidden();
+        $this->assertFalse($quest->fresh()->sucesso);
+        $this->assertSame(5, Aventureiro::findOrFail(1)->nivel);
     }
 
     public function test_login_devolve_token_e_logout_revoga(): void
@@ -96,8 +112,8 @@ class ApiAuthorizationTest extends TestCase
 
     public function test_api_rejeita_quest_futura_e_ids_nao_numericos_sem_erro_de_servidor(): void
     {
-        Sanctum::actingAs(Aventureiro::findOrFail(1));
-        $this->postJson('/api/jogador/quests', ['dungeon_id' => 1, 'data_quest' => now()->addDay()->toDateString(), 'sucesso' => true])
+        Sanctum::actingAs(Aventureiro::findOrFail(3));
+        $this->postJson('/api/admin/quests', ['aventureiro_id' => 1, 'dungeon_id' => 1, 'data_quest' => now()->addDay()->toDateString(), 'sucesso' => true])
             ->assertUnprocessable()->assertJsonValidationErrors('data_quest');
         $this->getJson('/api/dungeons/invalida')->assertNotFound();
         $this->assertSame(0, Quest::count());

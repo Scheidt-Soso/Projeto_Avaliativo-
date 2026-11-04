@@ -30,8 +30,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/dungeons/{dungeon}', [DungeonController::class, 'show']);
         Route::get('/quests', [QuestController::class, 'index']);
         Route::get('/quests/{quest}', [QuestController::class, 'show']);
-        Route::post('/quests', [QuestController::class, 'store']);
-        Route::post('/quests/registrar', [QuestController::class, 'registrar']);
+        // Clientes antigos recebem 403: resultados só podem ser registrados por administradores.
+        Route::post('/quests', [QuestController::class, 'store'])->middleware('can:gerenciar-cadastros');
+        Route::post('/quests/registrar', [QuestController::class, 'registrar'])->middleware('can:gerenciar-cadastros');
         Route::post('/aventureiros/{aventureiro}/guilda', [AventureiroController::class, 'vincularGuilda']);
     });
 

@@ -29,7 +29,9 @@ class GuildDashboardController extends Controller
             $aventureiro = $dashboard['guilda']->aventureiros->firstWhere('id', $selecao['aventureiro_id']);
             $dungeon = $dashboard['dungeons']->firstWhere('id', $selecao['dungeon_id']);
             if ($aventureiro && $dungeon && ($request->user()->can('gerenciar-cadastros') || $aventureiro->id === $request->user()->id)) {
-                $destino = compact('aventureiro', 'dungeon');
+                $ultimaQuest = $aventureiro->quests()->where('dungeon_id', $dungeon->id)
+                    ->orderByDesc('data_quest')->orderByDesc('id')->first();
+                $destino = compact('aventureiro', 'dungeon', 'ultimaQuest');
             } else {
                 $request->session()->forget('expedicao.selecao');
             }

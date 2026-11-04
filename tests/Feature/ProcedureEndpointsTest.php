@@ -32,18 +32,18 @@ class ProcedureEndpointsTest extends TestCase
         Dungeon::create(['id' => 1, 'nome' => 'Cripta', 'dificuldade' => 'Média', 'xp_recompensa' => 40]);
     }
 
-    public function test_jogador_registra_quest_pela_procedure_com_o_proprio_id(): void
+    public function test_admin_registra_quest_pela_procedure_para_o_aventureiro_informado(): void
     {
         $this->mock(ProcedureService::class, function ($mock) {
             $mock->shouldReceive('registrarQuest')
                 ->once()
-                ->with(1, 1, '2026-11-01', true)
+                ->with(2, 1, '2026-11-01', true)
                 ->andReturn((object) ['xp_total' => 4000, 'nivel_atual' => 5]);
         });
 
-        Sanctum::actingAs(Aventureiro::findOrFail(1));
+        Sanctum::actingAs(Aventureiro::findOrFail(3));
 
-        $this->postJson('/api/jogador/quests/registrar', [
+        $this->postJson('/api/admin/quests/registrar', [
             'aventureiro_id' => 2,
             'dungeon_id' => 1,
             'data_quest' => '2026-11-01',
@@ -51,6 +51,15 @@ class ProcedureEndpointsTest extends TestCase
         ])->assertCreated()
             ->assertJsonPath('xp_total', 4000)
             ->assertJsonPath('nivel_atual', 5);
+    }
+
+    public function test_jogador_e_bloqueado_antes_de_executar_a_procedure(): void
+    {
+        $this->mock(ProcedureService::class, fn ($mock) => $mock->shouldNotReceive('registrarQuest'));
+        Sanctum::actingAs(Aventureiro::findOrFail(1));
+        $this->postJson('/api/jogador/quests/registrar', [
+            'dungeon_id' => 1, 'data_quest' => '2026-11-01', 'sucesso' => true,
+        ])->assertForbidden();
     }
 
     public function test_admin_precisa_informar_aventureiro_ao_registrar_quest(): void
