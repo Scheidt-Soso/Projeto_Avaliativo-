@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Aventureiro;
 use App\Models\Guilda;
 use Illuminate\Support\Facades\DB;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class AventureiroSelectionTest extends TestCase
@@ -74,12 +75,16 @@ class AventureiroSelectionTest extends TestCase
 
     public function test_api_existente_lista_aventureiros_com_guilda_em_json(): void
     {
-        $this->getJson('/api/aventureiros')->assertOk()->assertJsonPath('data.0.nickname', 'Kaelthas')
+        Sanctum::actingAs(Aventureiro::findOrFail(1));
+
+        $this->getJson('/api/jogador/aventureiros')->assertOk()->assertJsonPath('data.0.nickname', 'Kaelthas')
             ->assertJsonPath('data.0.guilda.nome', 'Lâminas Rubras')->assertJsonStructure(['data', 'links', 'meta']);
     }
 
     public function test_api_existente_retorna_404_para_aventureiro_inexistente(): void
     {
-        $this->getJson('/api/aventureiros/999')->assertNotFound()->assertJsonStructure(['message']);
+        Sanctum::actingAs(Aventureiro::findOrFail(1));
+
+        $this->getJson('/api/jogador/aventureiros/999')->assertNotFound()->assertJsonStructure(['message']);
     }
 }

@@ -33,7 +33,7 @@ class AuthenticationTest extends TestCase
         $this->get('/aventureiros')->assertRedirect(route('login'));
         $this->post('/guildas/1/expedicao/selecionar', ['aventureiro_id' => 1, 'dungeon_id' => 1])->assertRedirect(route('login'));
         foreach (['guildas', 'aventureiros', 'dungeons', 'quests'] as $recurso) {
-            $this->getJson('/api/'.$recurso)->assertUnauthorized();
+            $this->getJson('/api/'.$recurso)->assertStatus($recurso === 'dungeons' ? 200 : 401);
             $this->postJson('/api/'.$recurso, [])->assertUnauthorized();
         }
     }

@@ -18,4 +18,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/aventureiros', [AventureiroController::class, 'index'])->name('aventureiros.escolher');
     Route::post('/aventureiro/selecionar', [AventureiroController::class, 'selecionar'])->name('aventureiros.selecionar');
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+    Route::redirect('/jogador/dashboard', '/')->name('jogador.dashboard');
+    Route::redirect('/admin/dashboard', '/')->middleware('can:gerenciar-cadastros')->name('admin.dashboard');
 });
