@@ -38,6 +38,7 @@ class QuestService extends CrudService
     public function atualizar(Model $registro, array $dados): Model
     {
         return DB::transaction(function () use ($registro, $dados) {
+            $registro = $registro->newQuery()->whereKey($registro->id)->lockForUpdate()->firstOrFail();
             $anterior = $registro->aventureiro_id;
             $registro = parent::atualizar($registro, $dados);
             $this->procedures->recalcularNiveis([$anterior, $registro->aventureiro_id]);

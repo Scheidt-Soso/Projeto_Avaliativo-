@@ -50,6 +50,7 @@ abstract class CrudService
     public function atualizar(Model $registro, array $dados): Model
     {
         return DB::transaction(function () use ($registro, $dados) {
+            $registro = $registro->newQuery()->whereKey($registro->id)->lockForUpdate()->firstOrFail();
             $registro->update($dados);
 
             return $registro->load($this->relacionamentos());
@@ -58,6 +59,6 @@ abstract class CrudService
 
     public function excluir(Model $registro): void
     {
-        DB::transaction(fn () => $registro->delete(), 3);
+        DB::transaction(fn () => $registro->newQuery()->whereKey($registro->id)->lockForUpdate()->firstOrFail()->delete(), 3);
     }
 }

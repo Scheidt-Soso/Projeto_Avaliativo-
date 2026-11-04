@@ -38,8 +38,10 @@ class ProcedureService
     {
         DB::transaction(function () use ($aventureiros) {
             $this->configurarSchema();
-            foreach (array_unique($aventureiros) as $id) {
-                if (Aventureiro::query()->whereKey($id)->lockForUpdate()->exists()) {
+            $aventureiros = array_unique($aventureiros);
+            sort($aventureiros);
+            foreach ($aventureiros as $id) {
+                if (Aventureiro::query()->whereKey($id)->lockForUpdate()->first(['id'])) {
                     DB::selectOne('SELECT rpg_trabalho_bd.fn_atualizar_nivel_aventureiro(?) AS nivel', [$id]);
                 }
             }
