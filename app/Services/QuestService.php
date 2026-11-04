@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\DB;
 
 class QuestService extends CrudService
 {
+    public function __construct(private ProcedureService $procedures) {}
+
     protected function model(): string
     {
         return Quest::class;
@@ -18,35 +20,38 @@ class QuestService extends CrudService
         return ['aventureiro', 'dungeon'];
     }
 
-    /**
-     * O CRUD registra a quest com a data de hoje quando ela não é informada.
-     * A progressão de nível pertence à procedure de expedição, não a este CRUD.
-     */
     public function criar(array $dados): Model
     {
-        $dados['data_quest'] ??= now()->toDateString();
+        return DB::transaction(function () use ($dados) {
+            $progresso = $this->procedures->registrarQuest(
+                (int) $dados['aventureiro_id'], (int) $dados['dungeon_id'],
+                $dados['data_quest'] ?? now()->toDateString(), (bool) $dados['sucesso'],
+            );
 
-        return parent::criar($dados);
+            $quest = $this->query()->findOrFail($progresso->quest_id);
+            $quest->wasRecentlyCreated = true;
+
+            return $quest;
+        }, 3);
     }
 
-    public function registrarQuest(
-        string $dataQuest,
-        int $aventureiroId,
-        int $dungeonId,
-        string $resultado
-    ): array {
-        $sucesso = $resultado === 'sucesso';
+    public function atualizar(Model $registro, array $dados): Model
+    {
+        return DB::transaction(function () use ($registro, $dados) {
+            $anterior = $registro->aventureiro_id;
+            $registro = parent::atualizar($registro, $dados);
+            $this->procedures->recalcularNiveis([$anterior, $registro->aventureiro_id]);
 
-    $resultadoProcedure = DB::select(
-        'CALL rpg_trabalho_bd.pr_registrar_quest(?, ?, ?, ?, NULL, NULL)',
-        [
-            $aventureiroId,
-            $dungeonId,
-            $dataQuest,
-            $sucesso
-        ]
-    );
+            return $registro->refresh()->load($this->relacionamentos());
+        }, 3);
+    }
 
-    return (array) $resultadoProcedure[0];
-}
+    public function excluir(Model $registro): void
+    {
+        DB::transaction(function () use ($registro) {
+            $id = $registro->aventureiro_id;
+            parent::excluir($registro);
+            $this->procedures->recalcularNiveis([$id]);
+        }, 3);
+    }
 }

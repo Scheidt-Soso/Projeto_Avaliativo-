@@ -8,6 +8,6 @@ abstract class Controller
 {
     protected function mensagemDoBanco(QueryException $e): string
     {
-        return $e->getPrevious()?->errorInfo[2] ?? 'Não foi possível concluir a operação.';
+        return \App\Support\DatabaseError::message($e);
     }
 }
