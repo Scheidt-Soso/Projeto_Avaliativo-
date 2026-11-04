@@ -92,7 +92,7 @@ Para acompanhar as alterações ao vivo, mantenha `php artisan serve` e `npm run
 php artisan test
 ```
 
-É necessária a extensão `pdo_sqlite`. As suítes usam SQLite em memória com um schema anexado chamado `rpg_trabalho_bd`; não usam nem modificam o Neon. Cobrem autenticação, cadastro, limitação de tentativas, sigilo da senha, renovação/invalidação da sessão, permissões da API, listagem, filtros, paginação, escolha explícita de dungeon e regressões do painel.
+É necessária a extensão `pdo_sqlite`. As suítes usam SQLite em memória com um schema anexado chamado `rpg_trabalho_bd`; não usam nem modificam o Neon. Cobrem autenticação, cadastro, limitação de tentativas, sigilo da senha, renovação/invalidação da sessão, permissões e CRUD da API, listagem, filtros, paginação, escolha explícita de dungeon e regressões do painel.
 
 Os testes HTTP usam um substituto de `ProcedureService` exclusivamente em `tests/Support` para o SQLite. A suíte separada `phpunit.postgresql.xml` executa as procedures e triggers reais em PostgreSQL local, com rollback de cada teste. Configure `COROA_TEST_LOCAL=1`, `COROA_TEST_PASSWORD` e, se necessário, `COROA_TEST_PORT`, `COROA_TEST_DATABASE` e `COROA_TEST_USER`; execute `php vendor/phpunit/phpunit/phpunit -c phpunit.postgresql.xml`. O host dessa suíte é fixo em `127.0.0.1`.
 
