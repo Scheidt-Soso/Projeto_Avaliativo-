@@ -19,7 +19,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/relatorios', [\App\Http\Controllers\Web\RelatorioController::class, 'index'])->name('relatorios.index');
     Route::post('/relatorios/atualizar', [\App\Http\Controllers\Web\RelatorioController::class, 'atualizar'])->middleware('can:gerenciar-cadastros')->name('relatorios.atualizar');
     Route::post('/perfil/guilda', [\App\Http\Controllers\Web\PerfilController::class, 'vincularGuilda'])->name('perfil.guilda');
-    Route::post('/perfil/quests', [\App\Http\Controllers\Web\PerfilController::class, 'registrarQuest'])->name('perfil.quests');
+    Route::post('/perfil/quests', [\App\Http\Controllers\Web\PerfilController::class, 'registrarQuest'])->middleware('can:gerenciar-cadastros')->name('perfil.quests');
     Route::prefix('cadastros')->name('cadastros.')->group(function () {
         foreach ([
             'guildas' => \App\Http\Controllers\Web\GuildaController::class,

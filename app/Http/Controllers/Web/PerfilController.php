@@ -11,6 +11,7 @@ use App\Services\QuestService;
 use App\Services\SubmissionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -34,6 +35,7 @@ class PerfilController extends Controller
 
     public function registrarQuest(Request $request): RedirectResponse
     {
+        Gate::authorize('gerenciar-cadastros');
         $dados = $request->validate([
             'dungeon_id' => ['required', 'integer', Rule::exists(Dungeon::class, 'id')],
             'data_quest' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],

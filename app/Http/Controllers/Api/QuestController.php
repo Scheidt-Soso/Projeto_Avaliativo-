@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\QuestResource;
-use App\Models\Aventureiro;
-use App\Models\Dungeon;
 use App\Models\Quest;
 use App\Services\ProcedureService;
 use App\Services\QuestService;
@@ -13,7 +11,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Gate;
 
 class QuestController extends Controller
 {
@@ -30,47 +28,21 @@ class QuestController extends Controller
     /** Registra o resultado de uma expedição pela API. */
     public function store(Request $request): QuestResource
     {
+        Gate::authorize('gerenciar-cadastros');
         $request->mergeIfMissing(['data_quest' => now()->toDateString()]);
-        $regras = [
-            'dungeon_id' => ['required', 'integer', Rule::exists(Dungeon::class, 'id')],
-            'data_quest' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
-            'sucesso' => ['required', 'boolean'],
-        ];
-
-        if ($request->user()?->role === 'admin') {
-            $regras['aventureiro_id'] = ['required', 'integer', Rule::exists(Aventureiro::class, 'id')];
-        }
-
-        $dados = $request->validate($regras);
-
-        if ($request->user()?->role !== 'admin') {
-            $dados['aventureiro_id'] = $request->user()->id;
-        }
+        $dados = $request->validate(\App\Support\RecordRules::for('quests'));
 
         return new QuestResource($this->service->criar($dados));
     }
 
     public function registrar(Request $request): JsonResponse
     {
-        $regras = [
-            'dungeon_id' => ['required', 'integer', Rule::exists(Dungeon::class, 'id')],
-            'data_quest' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
-            'sucesso' => ['required', 'boolean'],
-        ];
-
-        if ($request->user()?->role === 'admin') {
-            $regras['aventureiro_id'] = ['required', 'integer', Rule::exists(Aventureiro::class, 'id')];
-        }
-
-        $dados = $request->validate($regras);
-
-        $aventureiroId = $request->user()?->role === 'admin'
-            ? $dados['aventureiro_id']
-            : $request->user()->id;
+        Gate::authorize('gerenciar-cadastros');
+        $dados = $request->validate(\App\Support\RecordRules::for('quests'));
 
         try {
             $progresso = $this->procedures->registrarQuest(
-                $aventureiroId,
+                $dados['aventureiro_id'],
                 $dados['dungeon_id'],
                 $dados['data_quest'],
                 $dados['sucesso'],
@@ -94,6 +66,7 @@ class QuestController extends Controller
 
     public function update(Request $request, Quest $quest): QuestResource
     {
+        Gate::authorize('gerenciar-cadastros');
         $dados = $request->validate(\App\Support\RecordRules::for('quests', $quest->id, true));
 
         return new QuestResource($this->service->atualizar($quest, $dados));
@@ -101,6 +74,7 @@ class QuestController extends Controller
 
     public function destroy(Quest $quest): JsonResponse
     {
+        Gate::authorize('gerenciar-cadastros');
         $this->service->excluir($quest);
 
         return response()->json(null, 204);

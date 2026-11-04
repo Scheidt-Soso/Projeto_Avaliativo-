@@ -39,8 +39,25 @@ class PerfilTest extends TestCase
         $this->get('/?guilda=1')->assertOk()->assertSee('Veteranos');
     }
 
-    public function test_registro_de_quest_usa_proprio_id_destino_exato_e_nao_duplica(): void
+    public function test_jogador_nao_registra_sucesso_ou_falha_nem_altera_xp_pelo_perfil(): void
     {
+        foreach ([true, false] as $sucesso) {
+            $this->post('/perfil/quests', [
+                'submission_token' => (string) Str::uuid(), 'aventureiro_id' => 1,
+                'dungeon_id' => 1, 'data_quest' => '2026-10-01', 'sucesso' => $sucesso,
+                'role' => 'admin', 'nivel' => 99, 'xp_total' => 99999,
+            ])->assertForbidden();
+        }
+        $this->assertSame(0, Quest::count());
+        $this->assertSame(1, Aventureiro::findOrFail(2)->nivel);
+        $this->assertSame(30, Aventureiro::findOrFail(1)->nivel);
+        $this->assertSame('jogador', Aventureiro::findOrFail(2)->role);
+    }
+
+    public function test_admin_pode_registrar_no_proprio_perfil_sem_duplicar(): void
+    {
+        Aventureiro::findOrFail(2)->update(['role' => 'admin']);
+        $this->actingAs(Aventureiro::findOrFail(2));
         $dados = ['submission_token' => (string) Str::uuid(), 'aventureiro_id' => 1, 'dungeon_id' => 1, 'data_quest' => '2026-10-01', 'sucesso' => true];
         $this->post('/perfil/quests', $dados)->assertRedirect(route('perfil.show'));
         $this->post('/perfil/quests', $dados)->assertRedirect(route('perfil.show'));
@@ -63,6 +80,8 @@ class PerfilTest extends TestCase
 
     public function test_quest_futura_ou_destino_invalido_e_rejeitado(): void
     {
+        Aventureiro::findOrFail(2)->update(['role' => 'admin']);
+        $this->actingAs(Aventureiro::findOrFail(2));
         $this->post('/perfil/quests', ['submission_token' => (string) Str::uuid(), 'dungeon_id' => 999, 'data_quest' => now()->addDay()->toDateString(), 'sucesso' => true])->assertSessionHasErrors(['dungeon_id', 'data_quest']);
         $this->assertSame(0, Quest::count());
     }
