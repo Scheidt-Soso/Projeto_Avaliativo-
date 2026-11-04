@@ -1,0 +1,24 @@
+{
+    "data": "2026-11-03",
+    "dump_sha256": "c605e58bd4dd1f9d3e143c5f2c2914187c3ce0858224f40dbdb9689828e7b5b0",
+    "bytes": 53067,
+    "tabelas": {
+        "guildas": {
+            "original": 15,
+            "restaurado": 15
+        },
+        "aventureiros": {
+            "original": 105,
+            "restaurado": 105
+        },
+        "dungeons": {
+            "original": 20,
+            "restaurado": 20
+        },
+        "quests": {
+            "original": 204,
+            "restaurado": 204
+        }
+    },
+    "servidor_local": "18.6"
+}

@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Base dos services: concentra o CRUD comum.
@@ -38,9 +39,7 @@ abstract class CrudService
 
     public function criar(array $dados): Model
     {
-        $registro = ($this->model())::create($dados);
-
-        return $registro->load($this->relacionamentos());
+        return DB::transaction(fn () => ($this->model())::create($dados)->load($this->relacionamentos()), 3);
     }
 
     public function exibir(Model $registro): Model
@@ -50,13 +49,16 @@ abstract class CrudService
 
     public function atualizar(Model $registro, array $dados): Model
     {
-        $registro->update($dados);
+        return DB::transaction(function () use ($registro, $dados) {
+            $registro = $registro->newQuery()->whereKey($registro->id)->lockForUpdate()->firstOrFail();
+            $registro->update($dados);
 
-        return $registro->load($this->relacionamentos());
+            return $registro->load($this->relacionamentos());
+        }, 3);
     }
 
     public function excluir(Model $registro): void
     {
-        $registro->delete();
+        DB::transaction(fn () => $registro->newQuery()->whereKey($registro->id)->lockForUpdate()->firstOrFail()->delete(), 3);
     }
 }

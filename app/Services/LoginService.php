@@ -1,15 +1,25 @@
-<?php 
+<?php
 
 namespace App\Services;
 
 use App\Models\Aventureiro;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class LoginService
 {
-    public function register(array $dados)
+    public function authenticate(#[\SensitiveParameter] array $dados): bool
+    {
+        return Auth::attempt(['nickname' => $dados['nickname'], 'password' => $dados['senha']]);
+    }
+
+    public function classesDisponiveis(): Collection
+    {
+        return Aventureiro::query()->distinct()->orderBy('classe')->pluck('classe');
+    }
+
+    public function register(#[\SensitiveParameter] array $dados): Aventureiro
     {
         return Aventureiro::create([
             'nickname' => $dados['nickname'],
@@ -18,24 +28,5 @@ class LoginService
             'role' => 'jogador',
             'nivel' => 1,
         ]);
-    }
-
-    public function login(array $dados)
-    {
-        $aventureiro = Aventureiro::where('nickname', $dados['nickname'])->first();
-
-        if (!$aventureiro || !Hash::check($dados['senha'], $aventureiro->senha)) {
-            return null;
-        }
-
-        return $aventureiro;
-    }
-    
-    public function logout(Request $request)
-    {
-        Auth::logout();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
     }
 }

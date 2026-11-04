@@ -7,7 +7,9 @@ use App\Http\Resources\QuestResource;
 use App\Models\Aventureiro;
 use App\Models\Dungeon;
 use App\Models\Quest;
+use App\Services\ProcedureService;
 use App\Services\QuestService;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -15,26 +17,74 @@ use Illuminate\Validation\Rule;
 
 class QuestController extends Controller
 {
-    public function __construct(private QuestService $service)
-    {
-    }
+    public function __construct(
+        private QuestService $service,
+        private ProcedureService $procedures,
+    ) {}
 
     public function index(): AnonymousResourceCollection
     {
         return QuestResource::collection($this->service->listar());
     }
 
-    /** O jogo chama esta rota ao fim de cada run. */
+    /** Registra o resultado de uma expedição pela API. */
     public function store(Request $request): QuestResource
     {
-        $dados = $request->validate([
-            'aventureiro_id' => ['required', 'integer', Rule::exists(Aventureiro::class, 'id')],
-            'dungeons_id' => ['required', 'integer', Rule::exists(Dungeon::class, 'id')],
-            'data_exploracao' => ['nullable', 'date'],
+        $request->mergeIfMissing(['data_quest' => now()->toDateString()]);
+        $regras = [
+            'dungeon_id' => ['required', 'integer', Rule::exists(Dungeon::class, 'id')],
+            'data_quest' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
             'sucesso' => ['required', 'boolean'],
-        ]);
+        ];
+
+        if ($request->user()?->role === 'admin') {
+            $regras['aventureiro_id'] = ['required', 'integer', Rule::exists(Aventureiro::class, 'id')];
+        }
+
+        $dados = $request->validate($regras);
+
+        if ($request->user()?->role !== 'admin') {
+            $dados['aventureiro_id'] = $request->user()->id;
+        }
 
         return new QuestResource($this->service->criar($dados));
+    }
+
+    public function registrar(Request $request): JsonResponse
+    {
+        $regras = [
+            'dungeon_id' => ['required', 'integer', Rule::exists(Dungeon::class, 'id')],
+            'data_quest' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'sucesso' => ['required', 'boolean'],
+        ];
+
+        if ($request->user()?->role === 'admin') {
+            $regras['aventureiro_id'] = ['required', 'integer', Rule::exists(Aventureiro::class, 'id')];
+        }
+
+        $dados = $request->validate($regras);
+
+        $aventureiroId = $request->user()?->role === 'admin'
+            ? $dados['aventureiro_id']
+            : $request->user()->id;
+
+        try {
+            $progresso = $this->procedures->registrarQuest(
+                $aventureiroId,
+                $dados['dungeon_id'],
+                $dados['data_quest'],
+                $dados['sucesso'],
+            );
+        } catch (QueryException $e) {
+            if (! \App\Support\DatabaseError::isValidation($e)) throw $e;
+            return response()->json(['message' => $this->mensagemDoBanco($e)], 422);
+        }
+
+        return response()->json([
+            'message' => 'Quest registrada com sucesso.',
+            'xp_total' => $progresso->xp_total,
+            'nivel_atual' => $progresso->nivel_atual,
+        ], 201);
     }
 
     public function show(Quest $quest): QuestResource
@@ -44,12 +94,7 @@ class QuestController extends Controller
 
     public function update(Request $request, Quest $quest): QuestResource
     {
-        $dados = $request->validate([
-            'aventureiro_id' => ['sometimes', 'required', 'integer', Rule::exists(Aventureiro::class, 'id')],
-            'dungeons_id' => ['sometimes', 'required', 'integer', Rule::exists(Dungeon::class, 'id')],
-            'data_exploracao' => ['sometimes', 'required', 'date'],
-            'sucesso' => ['sometimes', 'required', 'boolean'],
-        ]);
+        $dados = $request->validate(\App\Support\RecordRules::for('quests', $quest->id, true));
 
         return new QuestResource($this->service->atualizar($quest, $dados));
     }
