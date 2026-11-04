@@ -35,7 +35,8 @@ class PerfilTest extends TestCase
     public function test_aventureiro_sem_guilda_chega_ao_perfil_e_pode_consultar_o_quartel(): void
     {
         $this->get('/')->assertRedirect(route('perfil.show'));
-        $this->get('/perfil')->assertOk()->assertSee('MeuAventureiro')->assertSee('Ainda sem guilda')->assertSee('REGISTRAR QUEST');
+        $this->get('/perfil')->assertOk()->assertSee('MeuAventureiro')->assertSee('Ainda sem guilda')
+            ->assertSee('VER MEU HISTÓRICO')->assertDontSee('REGISTRAR RESULTADO')->assertDontSee('name="sucesso"', false);
         $this->get('/?guilda=1')->assertOk()->assertSee('Veteranos');
     }
 
@@ -52,6 +53,16 @@ class PerfilTest extends TestCase
         $this->assertSame(1, Aventureiro::findOrFail(2)->nivel);
         $this->assertSame(30, Aventureiro::findOrFail(1)->nivel);
         $this->assertSame('jogador', Aventureiro::findOrFail(2)->role);
+    }
+
+    public function test_perfil_exibe_destino_apenas_para_consulta_e_link_administrativo_so_para_admin(): void
+    {
+        $this->get('/perfil?dungeon=1')->assertOk()->assertSee('Caverna Certa')
+            ->assertSee('O administrador registra o resultado')->assertDontSee('name="sucesso"', false)
+            ->assertDontSee(route('cadastros.quests.create'), false);
+        Aventureiro::findOrFail(2)->update(['role' => 'admin']);
+        $this->actingAs(Aventureiro::findOrFail(2))->get('/perfil?dungeon=1')->assertOk()
+            ->assertSee('REGISTRAR RESULTADO')->assertSee(route('cadastros.quests.create', ['aventureiro_id' => 2, 'dungeon_id' => 1]));
     }
 
     public function test_admin_pode_registrar_no_proprio_perfil_sem_duplicar(): void

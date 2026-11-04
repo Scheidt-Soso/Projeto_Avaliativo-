@@ -38,8 +38,12 @@
                 <p class="field-label">DESTINO DE {{ $destino['aventureiro']->nickname }}</p>
                 <h4>{{ $destino['dungeon']->nome }}</h4>
                 <div class="selection-metadata"><span>{{ $destino['dungeon']->dificuldade ?: 'Sem classificação' }}</span><strong>{{ number_format($destino['dungeon']->xp_recompensa, 0, ',', '.') }} XP</strong></div>
-                <p class="selection-hint">Destino preparado. O resultado e o XP dependem do registro da quest.</p>
-                <a class="secondary-action" href="{{ auth()->user()->can('gerenciar-cadastros') ? route('cadastros.quests.create', ['aventureiro_id' => $destino['aventureiro']->id, 'dungeon_id' => $destino['dungeon']->id]) : route('perfil.show', ['dungeon' => $destino['dungeon']->id]).'#registrar-expedicao' }}">REGISTRAR RESULTADO <x-pixel-icon name="arrow" /></a>
+                <p class="selection-hint">Destino preparado. O administrador registra o resultado da quest para atualizar o XP e o nível.</p>
+                @can('gerenciar-cadastros')
+                    <a class="secondary-action" href="{{ route('cadastros.quests.create', ['aventureiro_id' => $destino['aventureiro']->id, 'dungeon_id' => $destino['dungeon']->id]) }}">REGISTRAR RESULTADO <x-pixel-icon name="arrow" /></a>
+                @else
+                    <a class="secondary-action" href="{{ route('perfil.show', ['dungeon' => $destino['dungeon']->id]) }}#expedicoes">ACOMPANHAR EXPEDIÇÕES <x-pixel-icon name="arrow" /></a>
+                @endcan
             </div>
         @endif
         <button class="atlas-open" type="button" data-open-atlas><x-pixel-icon name="book" /> CONSULTAR ATLAS <span>{{ $dungeons->count() }} DESTINOS</span></button>

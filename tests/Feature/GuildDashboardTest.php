@@ -100,7 +100,8 @@ class GuildDashboardTest extends TestCase
         $response->assertRedirect(route('guildas.dashboard', ['guilda' => 1]))
             ->assertSessionHas('expedicao.selecao', ['guilda_id' => 1, 'aventureiro_id' => 1, 'dungeon_id' => 2]);
         $this->get('/?guilda=1')->assertOk()->assertViewHas('destino', fn ($destino) => $destino['dungeon']->id === 2 && $destino['aventureiro']->id === 1)
-            ->assertDontSee('SORTEAR DUNGEON')->assertDontSee('EXPEDIÇÃO ALEATÓRIA');
+            ->assertDontSee('SORTEAR DUNGEON')->assertDontSee('EXPEDIÇÃO ALEATÓRIA')
+            ->assertSee('ACOMPANHAR EXPEDIÇÕES')->assertDontSee('REGISTRAR RESULTADO');
         $this->assertSame(3, Quest::count());
         $this->assertSame($antes, Aventureiro::findOrFail(1)->getAttributes());
     }
@@ -109,6 +110,16 @@ class GuildDashboardTest extends TestCase
     {
         $this->from('/?guilda=1')->post('/guildas/1/expedicao/selecionar', ['aventureiro_id' => 3, 'dungeon_id' => 1])
             ->assertSessionHasErrors('aventureiro_id')->assertSessionMissing('expedicao.selecao');
+    }
+
+    public function test_admin_pode_preparar_e_abrir_registro_para_outro_membro(): void
+    {
+        $admin = Aventureiro::findOrFail(1);
+        $admin->update(['role' => 'admin']);
+        $this->actingAs($admin)->post('/guildas/1/expedicao/selecionar', ['aventureiro_id' => 2, 'dungeon_id' => 1])->assertRedirect();
+        $this->get('/?guilda=1')->assertOk()->assertSee('REGISTRAR RESULTADO')
+            ->assertSee(route('cadastros.quests.create', ['aventureiro_id' => 2, 'dungeon_id' => 1]));
+        $this->assertSame(3, Quest::count());
     }
 
     public function test_jogador_nao_prepara_expedicao_para_outro_membro_da_mesma_guilda(): void
