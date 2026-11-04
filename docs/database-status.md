@@ -1,6 +1,6 @@
 # Integração com o banco original
 
-Estrutura conferida em consulta somente leitura em 02/11/2026. Nenhuma migration, criação de objeto ou alteração de registros foi executada durante esta conferência.
+Estrutura conferida em consulta somente leitura em 03/11/2026. O backup foi restaurado em PostgreSQL local para testes; a auditoria e a restauração não alteraram o Neon.
 
 ## Schema atual
 
@@ -9,7 +9,7 @@ Estrutura conferida em consulta somente leitura em 02/11/2026. Nenhuma migration
 - `rpg_trabalho_bd.dungeons`: id, nome, dificuldade, xp_recompensa.
 - `rpg_trabalho_bd.quests`: id, aventureiro_id, **dungeon_id**, **data_quest**, sucesso.
 
-O acesso usa `aventureiros.nickname` (único, até 50 caracteres), `senha` (até 255 caracteres, permite nulo) e `role` (obrigatório, padrão `jogador`, CHECK para `admin`/`jogador`). Na consulta havia 102 aventureiros sem senha e um com hash bcrypt. Nenhuma credencial foi criada, exposta ou redefinida durante a auditoria.
+O acesso usa `aventureiros.nickname` (único, até 50 caracteres), `senha` (até 255 caracteres, permite nulo) e `role` (obrigatório, padrão `jogador`, CHECK para `admin`/`jogador`). Na consulta havia 105 aventureiros: 102 sem senha e três com hash bcrypt; um registro tinha papel administrativo. Nenhuma credencial foi criada, exposta ou redefinida durante a auditoria.
 
 O PDF anterior usava `dungeons_id` e `data_exploracao`. A aplicação foi alinhada aos nomes atuais. A API de quests agora recebe e devolve `dungeon_id` e `data_quest`.
 
@@ -28,12 +28,16 @@ O PDF anterior usava `dungeons_id` e `data_exploracao`. A aplicação foi alinha
 
 ## Implementado no painel
 
-Consultas de guildas, aventureiros, dungeons e quests. Histórico e XP são calculados a partir dos registros atuais. A dungeon é escolhida explicitamente entre os destinos cadastrados. A preparação guarda apenas IDs na sessão e não altera registros. O CRUD existente de quests apenas insere o registro; ele não aplica progressão automaticamente.
+CRUD web e API de guildas, aventureiros, dungeons e quests, com validação e permissões. A criação de quests chama a procedure original; editar/excluir quests ou excluir dungeons recalcula os níveis envolvidos e atualiza o ranking materializado. Vínculos de guilda passam pela procedure de nível mínimo. As triggers continuam sendo a autoridade para proteger nível mínimo e recompensas.
 
-## Próxima feature: execução da expedição
+## Registro de expedições
 
-Registrar aventureiro, dungeon escolhida, data e resultado informado, conforme os parâmetros de `pr_registrar_quest`. Revalidar membro/dungeon e evitar submissões duplicadas. Como o corpo das rotinas usa nomes sem schema, definir `SET LOCAL search_path TO rpg_trabalho_bd, public` na mesma transação antes do `CALL`. Evitar alterar o nível diretamente no controller ou inventar chances de vitória.
+O perfil permite registrar dungeon escolhida, data e resultado informado para o próprio aventureiro. Administradores também registram quests para outros aventureiros. O formulário impede reenvio duplicado por token. As rotinas usam nomes sem schema no corpo, por isso o service configura `SET LOCAL search_path TO rpg_trabalho_bd, public` na mesma transação antes do `CALL`.
 
-O recálculo do banco pode reduzir um nível antigo que não corresponda ao XP registrado: por isso a preparação atual não aciona essa atualização. Essa regra precisa ser apresentada com clareza ao conectar o registro da quest.
+O recálculo do banco pode reduzir um nível antigo que não corresponda ao XP registrado. O formulário informa que o nível será recalculado a partir do histórico completo; a preparação do destino continua sem alterar o nível.
+
+## Backup e validação
+
+Backup em formato custom restaurado em PostgreSQL local 18.6 em 03/11/2026. Contagens iguais na origem e na restauração: 15 guildas, 105 aventureiros, 20 dungeons e 204 quests. O dump real é local e ignorado pelo Git; o snapshot versionado contém somente a estrutura. A suíte PostgreSQL valida as duas procedures, as triggers, XP, ranking, cascatas e rollback.
 
 Os scripts das duas procedures, funções, triggers e índices foram integrados da `main`. A avaliação ainda exige evidências de uso, backup/restauração e documentação correspondente. A presença dos objetos no banco não conclui a integração de todos eles ao front.

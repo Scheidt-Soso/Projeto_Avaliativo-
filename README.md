@@ -14,7 +14,19 @@ O cadastro integrado da `feature/dudu` cria um aventureiro com senha protegida p
 | GET / POST | `/register` | Formulário e cadastro de aventureiro. |
 | POST | `/logout` | Encerra a sessão, com proteção CSRF. |
 
-O painel e o protótipo de seleção exigem login. A API usa a mesma sessão por Sanctum para chamadas do próprio site; `/api/user` devolve a conta autenticada sem a senha. Na aplicação, `jogador` pode consultar os cadastros e `admin` pode criar, editar e excluir. O papel vem do banco, que aceita somente esses dois valores. Não há promoção de usuário pelo cadastro público. Para desenvolvimento em outro domínio/porta, configure `SANCTUM_STATEFUL_DOMAINS` e envie os cookies e o token CSRF.
+O painel e os cadastros exigem login. A API aceita sessão do site por Sanctum ou token emitido em `/api/login`; `/api/user` devolve a conta sem a senha. O catálogo `GET /api/dungeons` é público. Jogadores consultam cadastros, vinculam o próprio aventureiro a uma guilda e registram as próprias quests. Administradores podem criar, editar e excluir os quatro tipos de registro. O papel vem do banco (`admin` ou `jogador`); o cadastro público cria apenas jogadores. Para outro domínio/porta, configure `SANCTUM_STATEFUL_DOMAINS` e envie os cookies e o token CSRF.
+
+## Cadastros, perfil e relatórios
+
+As páginas `/cadastros/guildas`, `/cadastros/aventureiros`, `/cadastros/dungeons` e `/cadastros/quests` possuem listagem, busca, filtros, paginação, ficha, criação, edição e exclusão. Alterações exigem administrador. A exclusão mostra os efeitos sobre registros relacionados e exige digitar o nome do registro. Formulários de criação usam um identificador para evitar duplicação por reenvio. Uma conta administrativa não pode excluir ou rebaixar a si mesma durante a sessão.
+
+Em `/perfil`, cada pessoa vê seu aventureiro, XP e histórico; pode entrar em uma guilda compatível com o nível e registrar o resultado real de uma expedição. A dungeon é escolhida explicitamente. O servidor usa o ID autenticado, mesmo que outro ID seja enviado pelo cliente.
+
+O registro de quests usa `pr_registrar_quest`. Correções e exclusões recalculam os níveis envolvidos com as funções do banco. Vínculos de guilda usam `pr_vincular_aventureiro_guilda`; as triggers preservam os requisitos de nível e a recompensa de dungeons já exploradas. As rotinas rodam em transações com `SET LOCAL search_path`, e o ranking materializado é atualizado após mudanças relevantes.
+
+Em `/relatorios`, as cinco views originais fornecem ranking de XP, vínculos de guildas, aventureiros sem quests, dungeons com XP acima da média e histórico de sucessos. Os relatórios têm busca e paginação; administradores podem atualizar o ranking manualmente. Perfil e relatórios estão no menu da conta.
+
+A tipografia foi ampliada: campos usam 16px, tabelas usam 15px e os textos auxiliares ganharam tamanho e contraste. A aparência monocromática e as animações permanecem.
 
 ## Feature 2: quartel de guildas em preto e branco
 
@@ -28,7 +40,7 @@ O elenco permite buscar por nome, combinar a classe e ordenar por nível, nome o
 
 O botão **Consultar atlas** mostra as dungeons do banco com dificuldade, recompensa e vitórias/tentativas da guilda atual. É possível buscar, filtrar dificuldade, ordenar por XP e destacar destinos ainda não explorados. Esses números descrevem o histórico, não a chance de vitória futura.
 
-A preparação exige escolher explicitamente um aventureiro da guilda e uma dungeon cadastrada, pelo formulário ou pelo atlas. O servidor valida os IDs e guarda somente a seleção na sessão; ao abrir o painel, consulta novamente os dados atuais. **Escolher um destino não registra uma quest nem muda o nível.** O banco não define sorteio ou probabilidade de vitória. O registro da quest com a procedure original será uma próxima feature. Nenhum objeto ou dado do Neon foi alterado nesta etapa.
+A preparação exige escolher explicitamente um aventureiro permitido e uma dungeon cadastrada, pelo formulário ou pelo atlas. O servidor valida os IDs e guarda a seleção na sessão; ao abrir o painel, consulta novamente os dados atuais. **Escolher um destino não registra uma quest nem muda o nível.** O botão de registrar resultado abre o formulário correspondente; a confirmação grava a quest e aplica a progressão original. O banco não define sorteio ou probabilidade de vitória.
 
 | Método | Rota | Função |
 | --- | --- | --- |
@@ -70,7 +82,7 @@ Abra http://127.0.0.1:8000. Para desenvolver com atualização dos assets, execu
 | GET | `/aventureiros` | Lista, busca, filtra e pagina os aventureiros do protótipo anterior. |
 | POST | `/aventureiro/selecionar` | Valida `aventureiro_id` e salva a escolha na sessão, com proteção CSRF. |
 
-As rotas REST de `/api/aventureiros`, `/api/guildas`, `/api/dungeons` e `/api/quests` exigem autenticação; alterações exigem papel `admin`.
+As rotas REST canônicas de `/api/aventureiros`, `/api/guildas` e `/api/quests` exigem autenticação; alterações administrativas exigem papel `admin`. Consultas de dungeons são públicas. Os prefixos `/api/jogador` e `/api/admin` das branches integradas foram preservados, incluindo registro de quests e vínculo de guilda por procedures. Jogadores só alteram seus próprios vínculos e registram suas próprias quests.
 
 Para acompanhar as alterações ao vivo, mantenha `php artisan serve` e `npm run dev -- --host 127.0.0.1` abertos em terminais separados.
 
@@ -81,6 +93,10 @@ php artisan test
 ```
 
 É necessária a extensão `pdo_sqlite`. As suítes usam SQLite em memória com um schema anexado chamado `rpg_trabalho_bd`; não usam nem modificam o Neon. Cobrem autenticação, cadastro, limitação de tentativas, sigilo da senha, renovação/invalidação da sessão, permissões da API, listagem, filtros, paginação, escolha explícita de dungeon e regressões do painel.
+
+Os testes HTTP usam um substituto de `ProcedureService` exclusivamente em `tests/Support` para o SQLite. A suíte separada `phpunit.postgresql.xml` executa as procedures e triggers reais em PostgreSQL local, com rollback de cada teste. Configure `COROA_TEST_LOCAL=1`, `COROA_TEST_PASSWORD` e, se necessário, `COROA_TEST_PORT`, `COROA_TEST_DATABASE` e `COROA_TEST_USER`; execute `php vendor/phpunit/phpunit/phpunit -c phpunit.postgresql.xml`. O host dessa suíte é fixo em `127.0.0.1`.
+
+O snapshot sem dados está em `database/schema/rpg_trabalho_bd.sql`. A evidência de backup/restauração está em `docs/evidencias/restauracao.json`. O dump com dados reais permanece local em `.tools/backups/`, ignorado pelo Git.
 
 ## Aparências e futuras fotos
 
