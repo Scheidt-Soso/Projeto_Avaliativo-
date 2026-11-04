@@ -20,12 +20,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::post('/quests/registrar', [QuestController::class, 'registrar']);
-    Route::post('/aventureiros/{aventureiro}/guilda', [AventureiroController::class, 'vincularGuilda']);
-    Route::apiResource('guildas', GuildaController::class)->middlewareFor(['store', 'update', 'destroy'], 'can:gerenciar-cadastros');
-    Route::apiResource('aventureiros', AventureiroController::class)->middlewareFor(['store', 'update', 'destroy'], 'can:gerenciar-cadastros');
-    Route::apiResource('dungeons', DungeonController::class)->except(['index', 'show'])->middleware('can:gerenciar-cadastros');
-    Route::apiResource('quests', QuestController::class)->middlewareFor(['store', 'update', 'destroy'], 'can:gerenciar-cadastros');
 
     Route::prefix('jogador')->middleware('role:jogador')->group(function () {
         Route::get('/guildas', [GuildaController::class, 'index']);
