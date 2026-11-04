@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo(fn () => route('guildas.dashboard'));
         $middleware->trimStrings(except: ['senha', 'senha_confirmation']);
         $middleware->statefulApi();
+        $middleware->alias(['role' => \App\Http\Middleware\RoleMiddleware::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->dontFlash(['senha', 'senha_confirmation']);

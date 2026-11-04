@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Quest;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class QuestService extends CrudService
 {
@@ -27,4 +28,25 @@ class QuestService extends CrudService
 
         return parent::criar($dados);
     }
+
+    public function registrarQuest(
+        string $dataQuest,
+        int $aventureiroId,
+        int $dungeonId,
+        string $resultado
+    ): array {
+        $sucesso = $resultado === 'sucesso';
+
+    $resultadoProcedure = DB::select(
+        'CALL rpg_trabalho_bd.pr_registrar_quest(?, ?, ?, ?, NULL, NULL)',
+        [
+            $aventureiroId,
+            $dungeonId,
+            $dataQuest,
+            $sucesso
+        ]
+    );
+
+    return (array) $resultadoProcedure[0];
+}
 }
