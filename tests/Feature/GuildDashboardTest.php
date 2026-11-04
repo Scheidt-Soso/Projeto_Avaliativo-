@@ -7,6 +7,7 @@ use App\Models\Dungeon;
 use App\Models\Guilda;
 use App\Models\Quest;
 use App\Services\ProcedureService;
+use App\Services\GuildDashboardService;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\FakeProcedures;
 use Tests\TestCase;
@@ -91,6 +92,58 @@ class GuildDashboardTest extends TestCase
         Quest::query()->delete();
         Dungeon::query()->delete();
         $this->get('/')->assertOk()->assertSee('O atlas está em branco.')->assertViewHas('dungeons', fn ($dungeons) => $dungeons->isEmpty());
+    }
+
+    public function test_resultados_de_dungeon_separam_sucesso_falha_e_guildas(): void
+    {
+        $dungeons = app(GuildDashboardService::class)->dashboard(1)['dungeons']->keyBy('id');
+        $this->assertSame(1, $dungeons[1]->guild_successes_count);
+        $this->assertSame(0, $dungeons[1]->guild_failures_count);
+        $this->assertSame(0, $dungeons[2]->guild_successes_count);
+        $this->assertSame(1, $dungeons[2]->guild_failures_count);
+        $this->assertSame([2], $dungeons[2]->quests->pluck('aventureiro_id')->all());
+        $this->assertFalse($dungeons[2]->quests->first()->sucesso);
+        $this->assertSame('Elara', $dungeons[2]->quests->first()->aventureiro->nickname);
+    }
+
+    public function test_atlas_abre_resultados_reais_e_mostra_ausencia_de_registros(): void
+    {
+        Dungeon::create(['nome' => 'Destino Intocado', 'dificuldade' => 'Fácil', 'xp_recompensa' => 20]);
+        $this->get('/?guilda=1')->assertOk()->assertSee('data-dungeon-history="1"', false)
+            ->assertSee('VER RESULTADOS')->assertSee('✓ Sucesso')->assertSee('× Falha')
+            ->assertSee('1 sucesso')->assertSee('1 falha')
+            ->assertSee('REGISTROS RECENTES · 1 de 1')
+            ->assertSee('Sem expedições registradas nesta guilda.')->assertDontSee('Lyriel');
+    }
+
+    public function test_historico_do_atlas_limita_cinco_por_dungeon_e_usa_data_e_id_para_ordenar(): void
+    {
+        foreach ([1, 2] as $dungeonId) {
+            foreach (range(1, 7) as $dia) {
+                Quest::create(['aventureiro_id' => 1, 'dungeon_id' => $dungeonId, 'data_quest' => '2026-10-'.str_pad($dia, 2, '0', STR_PAD_LEFT), 'sucesso' => $dia % 2 === 0]);
+            }
+        }
+        $ultima = Quest::create(['aventureiro_id' => 2, 'dungeon_id' => 1, 'data_quest' => '2026-10-07', 'sucesso' => false]);
+        $dungeons = app(GuildDashboardService::class)->dashboard(1)['dungeons']->keyBy('id');
+        $this->assertCount(5, $dungeons[1]->quests);
+        $this->assertCount(5, $dungeons[2]->quests);
+        $this->assertSame($ultima->id, $dungeons[1]->quests->first()->id);
+        $this->assertSame([1], $dungeons[2]->quests->pluck('aventureiro_id')->unique()->values()->all());
+        $this->assertSame(9, $dungeons[1]->guild_attempts_count);
+        $this->assertSame(8, $dungeons[2]->guild_attempts_count);
+    }
+
+    public function test_destino_mostra_ultima_quest_so_do_aventureiro_e_dungeon_escolhidos(): void
+    {
+        Quest::create(['aventureiro_id' => 1, 'dungeon_id' => 1, 'data_quest' => '2026-10-02', 'sucesso' => false]);
+        Quest::create(['aventureiro_id' => 2, 'dungeon_id' => 1, 'data_quest' => '2026-10-03', 'sucesso' => true]);
+        $this->post('/guildas/1/expedicao/selecionar', ['aventureiro_id' => 1, 'dungeon_id' => 1])->assertRedirect();
+        $this->get('/?guilda=1')->assertOk()->assertViewHas('destino', fn ($destino) =>
+            $destino['ultimaQuest']->aventureiro_id === 1 && !$destino['ultimaQuest']->sucesso)
+            ->assertSee('ÚLTIMO RESULTADO DE Kaelthas NESTA DUNGEON')->assertSee('× Falha');
+        $this->post('/guildas/1/expedicao/selecionar', ['aventureiro_id' => 1, 'dungeon_id' => 2])->assertRedirect();
+        $this->get('/?guilda=1')->assertOk()->assertViewHas('destino', fn ($destino) => $destino['ultimaQuest'] === null)
+            ->assertSee('Sem expedições registradas para este aventureiro nesta dungeon.');
     }
 
     public function test_selecao_preserva_exatamente_a_dungeon_escolhida_sem_mudar_nivel_ou_criar_quest(): void

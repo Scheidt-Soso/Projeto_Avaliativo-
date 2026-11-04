@@ -156,5 +156,23 @@ h2 { font-size: 12px; font-weight: 400; letter-spacing: 1.5px; display: flex; al
 .atlas-tools input[type=search],.atlas-tools select { min-width: 0; background: #111110; border: 1px solid #4a4a43; height: 37px; padding: 0 9px; font: 12px var(--mono); }.atlas-tools .roster-search input { width: 100%; background: none; border: 0; padding: 0; }
 .unexplored-toggle { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #b8b8ab; grid-column: 1; min-height: 27px; }.unexplored-toggle input { accent-color: white; height: 13px; width: 13px; margin: 0; }.atlas-count { align-self: center; font-size: 12px; color: #aaa; }.atlas-reset { font: 12px var(--mono); background: none; border: 0; color: #ddd; text-decoration: underline; text-underline-offset: 3px; justify-self: end; }
 .dungeon-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }.dungeon-entry { display: flex; flex-direction: column; border: 1px solid #494940; padding: 16px; background: #0e0e0d; }.dungeon-entry-header { display: flex; justify-content: space-between; gap: 12px; text-transform: uppercase; font: 12px var(--mono); color: #b3b3a4; }.dungeon-entry-header > span:first-child { color: #77776e; }.dungeon-entry h3 { font: 27px/1.1 var(--pixel); margin: 17px 0 15px; }.dungeon-reward { font: 27px var(--pixel); margin-top: auto; }.dungeon-reward small { font: 12px var(--mono); color: #b2b2a3; margin-left: 7px; }.dungeon-record { display: flex; align-items: center; gap: 8px; border-top: 1px dashed #45453b; padding-top: 12px; margin-top: 15px; font: 12px/1.8 var(--mono); color: #a8a899; }.dungeon-record .pixel-icon { height: 11px; width: 11px; }
+.dungeon-history > summary { list-style: none; cursor: pointer; }
+.dungeon-history > summary::-webkit-details-marker { display: none; }
+.dungeon-history > summary:focus-visible { outline: 2px solid #eee; outline-offset: 5px; }
+.dungeon-history > summary h3 > span { display: flex; align-items: center; gap: 8px; margin-top: 12px; color: #c5c5bb; font: 12px/1.5 var(--mono); }
+.dungeon-history > summary .pixel-icon { width: 12px; height: 12px; transition: transform .15s steps(2); }
+.dungeon-history[open] > summary .pixel-icon { transform: rotate(180deg); }
+.dungeon-history-content { padding: 12px 0; border-top: 1px dashed #55554c; }
+.dungeon-history-content > p { font: 12px/1.7 var(--mono); color: #c5c5bb; margin: 0 0 10px; }
+.dungeon-history-content ol { list-style: none; margin: 0; padding: 0; }
+.dungeon-history-content li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid #30302c; }
+.dungeon-history-content li > div { min-width: 0; overflow-wrap: anywhere; }
+.dungeon-history-content strong { display: block; font: 14px/1.6 var(--mono); }
+.dungeon-history-content time { font: 12px/1.6 var(--mono); color: #b8b8ad; }
+.dungeon-record { flex-wrap: wrap; }
+.destination-result { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-top: 16px; margin-top: 16px; border-top: 1px dashed #55554c; }
+.destination-result > .field-label { flex-basis: 100%; margin: 0; line-height: 1.7; overflow-wrap: anywhere; }
+.destination-result time { font: 13px/1.6 var(--mono); color: #c5c5bb; }
+.destination-result .selection-hint { margin: 0; }
 .atlas-empty { grid-column: 1/-1; }.atlas-footer { display: flex; align-items: center; gap: 20px; margin-top: 22px; border-top: 1px solid #49493f; padding-top: 18px; }.atlas-footer p { font: 12px/1.9 var(--mono); color: #aaa99a; flex: 1; }.atlas-footer .secondary-action { width: auto; white-space: nowrap; gap: 18px; font-size: 12px; }
 @media(max-width:640px) { .atlas-tools { grid-template-columns: 1fr 1fr; }.atlas-tools .roster-search { grid-column: 1/-1; }.atlas-tools select { width: 100%; font-size: 12px; }.atlas-count { text-align: right; }.atlas-reset { grid-column: 1/-1; padding: 3px 0; }.dungeon-grid { grid-template-columns: 1fr; }.atlas-footer { flex-direction: column; align-items: stretch; gap: 14px; }.atlas-guild { font-size: 12px; }.atlas-guild > span:last-child { font-size: 12px; } }

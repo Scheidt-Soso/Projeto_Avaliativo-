@@ -9,6 +9,7 @@ use App\Models\Quest;
 use App\Services\AventureiroService;
 use App\Services\DungeonService;
 use App\Services\GuildaService;
+use App\Services\GuildDashboardService;
 use App\Services\ProcedureService;
 use App\Services\QuestService;
 use App\Support\DatabaseError;
@@ -182,6 +183,26 @@ class PostgreSqlRulesTest extends TestCase
         $this->assertSame(0, $this->aventureiro->quests()->count());
         $this->assertSame(1, $this->aventureiro->fresh()->nivel);
         $this->assertSame(0, (int) app(ProcedureService::class)->progresso($this->aventureiro->id)->xp_total);
+    }
+
+    public function test_atlas_carrega_cinco_resultados_reais_por_dungeon_no_postgresql(): void
+    {
+        app(ProcedureService::class)->vincularAventureiroGuilda($this->aventureiro->id, $this->guilda->id);
+        $outra = Dungeon::create(['nome' => 'Outra '.Str::random(10), 'dificuldade' => 'Fácil', 'xp_recompensa' => 500]);
+        foreach ([$this->dungeon->id, $outra->id] as $dungeonId) {
+            foreach (range(1, 7) as $dia) {
+                Quest::create(['aventureiro_id' => $this->aventureiro->id, 'dungeon_id' => $dungeonId,
+                    'data_quest' => '2026-10-'.str_pad($dia, 2, '0', STR_PAD_LEFT), 'sucesso' => $dia % 2 === 0]);
+            }
+        }
+        $dungeons = app(GuildDashboardService::class)->dashboard($this->guilda->id)['dungeons']->keyBy('id');
+        foreach ([$this->dungeon->id, $outra->id] as $dungeonId) {
+            $this->assertSame(3, $dungeons[$dungeonId]->guild_successes_count);
+            $this->assertSame(4, $dungeons[$dungeonId]->guild_failures_count);
+            $this->assertCount(5, $dungeons[$dungeonId]->quests);
+            $this->assertFalse($dungeons[$dungeonId]->quests->first()->sucesso);
+            $this->assertSame($this->aventureiro->nickname, $dungeons[$dungeonId]->quests->first()->aventureiro->nickname);
+        }
     }
 
     private function rejeita(callable $operacao, string $trecho): void

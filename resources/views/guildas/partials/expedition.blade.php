@@ -38,6 +38,16 @@
                 <p class="field-label">DESTINO DE {{ $destino['aventureiro']->nickname }}</p>
                 <h4>{{ $destino['dungeon']->nome }}</h4>
                 <div class="selection-metadata"><span>{{ $destino['dungeon']->dificuldade ?: 'Sem classificação' }}</span><strong>{{ number_format($destino['dungeon']->xp_recompensa, 0, ',', '.') }} XP</strong></div>
+                <div class="destination-result" data-destination-result>
+                    <p class="field-label">ÚLTIMO RESULTADO DE {{ $destino['aventureiro']->nickname }} NESTA DUNGEON</p>
+                    @if($destino['ultimaQuest'])
+                        <span class="result-badge {{ $destino['ultimaQuest']->sucesso ? 'is-success' : '' }}">{{ $destino['ultimaQuest']->sucesso ? '✓ Sucesso' : '× Falha' }}</span>
+                        <time datetime="{{ $destino['ultimaQuest']->data_quest }}">{{ \App\Support\RecordDisplay::value($destino['ultimaQuest'], 'data_quest') }}</time>
+                        <a class="text-link" href="{{ route('cadastros.quests.show', $destino['ultimaQuest']->id) }}">Ver registro ↗</a>
+                    @else
+                        <p class="selection-hint">Sem expedições registradas para este aventureiro nesta dungeon.</p>
+                    @endif
+                </div>
                 <p class="selection-hint">Destino preparado. O administrador registra o resultado da quest para atualizar o XP e o nível.</p>
                 @can('gerenciar-cadastros')
                     <a class="secondary-action" href="{{ route('cadastros.quests.create', ['aventureiro_id' => $destino['aventureiro']->id, 'dungeon_id' => $destino['dungeon']->id]) }}">REGISTRAR RESULTADO <x-pixel-icon name="arrow" /></a>

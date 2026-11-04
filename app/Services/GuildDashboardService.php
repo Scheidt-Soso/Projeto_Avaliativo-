@@ -47,7 +47,11 @@ class GuildDashboardService
             ->withCount([
                 'quests as guild_attempts_count' => $guildQuests,
                 'quests as guild_successes_count' => fn ($query) => $guildQuests($query)->where('sucesso', true),
+                'quests as guild_failures_count' => fn ($query) => $guildQuests($query)->where('sucesso', false),
             ])
+            ->with(['quests' => fn ($query) => $guildQuests($query)
+                ->select(['id', 'dungeon_id', 'aventureiro_id', 'data_quest', 'sucesso'])
+                ->with('aventureiro:id,nickname')->orderByDesc('data_quest')->orderByDesc('id')->limit(5)])
             ->orderBy('xp_recompensa')->orderBy('nome')->get();
     }
 }
