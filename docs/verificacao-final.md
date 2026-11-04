@@ -8,6 +8,8 @@ O administrador registra sucesso ou falha em **Quests → Novo registro**, pelo 
 
 O jogador consulta dungeons e histórico, prepara seu próprio destino e vincula sua conta a uma guilda compatível. Não há formulário de resultado no perfil. Tentativas de gravação pelo perfil, pelo cadastro web, pelos endpoints antigos de jogador ou pela API administrativa são bloqueadas antes de alterar o banco. Campos forjados de papel, nível e XP não concedem permissões.
 
+Na tela inicial, **Consultar atlas → nome da dungeon** abre sucessos e falhas recentes da guilda, com data, aventureiro e acesso à quest. Os totais incluem todo o histórico dos membros atuais; os detalhes são limitados aos cinco registros mais recentes de cada dungeon. O destino selecionado mostra o último resultado específico do aventureiro escolhido. Sem quests correspondentes, a tela informa ausência de registros.
+
 ## Acesso administrativo
 
 O administrador usa a mesma página `/login`, com o nickname e a senha da tabela original. O acesso aos cadastros depende de `role = admin`, conferido no servidor. Não é necessário cadastrar outra conta em `users`.
@@ -16,8 +18,8 @@ A conta administrativa existente possui hash bcrypt, conferido em consulta somen
 
 ## Validação executada
 
-- 79 testes HTTP/unitários aprovados, com 514 verificações: autenticação, permissões, CRUD, perfil, relatórios e seleção de destino.
-- 10 testes no PostgreSQL local aprovados, com 102 verificações: procedures, triggers, cascatas, rollback, login administrativo web/API, acesso aos quatro cadastros e cinco relatórios, registro de sucesso/falha, logout e bloqueio de gravação por jogador.
+- 83 testes HTTP/unitários aprovados, com 546 verificações: autenticação, permissões, CRUD, perfil, relatórios, seleção de destino e exibição dos resultados corretos por dungeon, aventureiro e guilda.
+- 11 testes no PostgreSQL local aprovados, com 112 verificações: procedures, triggers, cascatas, rollback, login administrativo web/API, acesso aos quatro cadastros e cinco relatórios, registro de sucesso/falha, logout, bloqueio de gravação por jogador e limite de cinco resultados recentes por dungeon.
 - Build de produção aprovado.
 - As contas de teste são revertidas; os testes não gravam no Neon.
 
