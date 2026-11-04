@@ -14,7 +14,7 @@ O cadastro integrado da `feature/dudu` cria um aventureiro com senha protegida p
 | GET / POST | `/register` | Formulário e cadastro de aventureiro. |
 | POST | `/logout` | Encerra a sessão, com proteção CSRF. |
 
-O painel e os cadastros exigem login. A API aceita sessão do site por Sanctum ou token emitido em `/api/login`; `/api/user` devolve a conta sem a senha. O catálogo `GET /api/dungeons` é público. Jogadores consultam cadastros, vinculam o próprio aventureiro a uma guilda e registram as próprias quests. Administradores podem criar, editar e excluir os quatro tipos de registro. O papel vem do banco (`admin` ou `jogador`); o cadastro público cria apenas jogadores. Para outro domínio/porta, configure `SANCTUM_STATEFUL_DOMAINS` e envie os cookies e o token CSRF.
+O painel e os cadastros exigem login. A API aceita sessão do site por Sanctum ou token emitido em `/api/login`; `/api/user` devolve a conta sem a senha. O catálogo `GET /api/dungeons` é público. Jogadores usam `/api/jogador/*` para consultar cadastros, vincular o próprio aventureiro a uma guilda e registrar as próprias quests. Administradores usam `/api/admin/*` para criar, editar e excluir os quatro tipos de registro. Não existem rotas genéricas `/api/{recurso}`. O papel vem do banco (`admin` ou `jogador`); o cadastro público cria apenas jogadores. Para outro domínio/porta, configure `SANCTUM_STATEFUL_DOMAINS` e envie os cookies e o token CSRF.
 
 ## Cadastros, perfil e relatórios
 
@@ -82,7 +82,7 @@ Abra http://127.0.0.1:8000. Para desenvolver com atualização dos assets, execu
 | GET | `/aventureiros` | Lista, busca, filtra e pagina os aventureiros do protótipo anterior. |
 | POST | `/aventureiro/selecionar` | Valida `aventureiro_id` e salva a escolha na sessão, com proteção CSRF. |
 
-As rotas REST canônicas de `/api/aventureiros`, `/api/guildas` e `/api/quests` exigem autenticação; alterações administrativas exigem papel `admin`. Consultas de dungeons são públicas. Os prefixos `/api/jogador` e `/api/admin` das branches integradas foram preservados, incluindo registro de quests e vínculo de guilda por procedures. Jogadores só alteram seus próprios vínculos e registram suas próprias quests.
+A API usa apenas os prefixos `/api/jogador` e `/api/admin` para os cadastros; as antigas rotas genéricas `/api/{recurso}` foram removidas. Consultas de dungeons são públicas. Jogadores só alteram seus próprios vínculos e registram suas próprias quests; administradores têm o CRUD completo. O registro de quests e o vínculo de guilda por procedures ficam em `POST /api/jogador/quests/registrar`, `POST /api/admin/quests/registrar`, `POST /api/jogador/aventureiros/{id}/guilda` e `POST /api/admin/aventureiros/{id}/guilda`.
 
 Para acompanhar as alterações ao vivo, mantenha `php artisan serve` e `npm run dev -- --host 127.0.0.1` abertos em terminais separados.
 

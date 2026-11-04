@@ -6,7 +6,9 @@ use App\Models\Aventureiro;
 use App\Models\Dungeon;
 use App\Models\Guilda;
 use App\Models\Quest;
+use App\Services\ProcedureService;
 use Illuminate\Support\Facades\DB;
+use Tests\Support\FakeProcedures;
 use Tests\TestCase;
 
 class GuildDashboardTest extends TestCase
@@ -16,7 +18,7 @@ class GuildDashboardTest extends TestCase
         parent::setUp();
         config(['database.default' => 'sqlite', 'database.connections.sqlite.database' => ':memory:']);
         DB::purge('sqlite');
-        $this->app->instance(\App\Services\ProcedureService::class, new \Tests\Support\FakeProcedures);
+        $this->app->instance(ProcedureService::class, new FakeProcedures);
         DB::statement("ATTACH DATABASE ':memory:' AS rpg_trabalho_bd");
         DB::statement('CREATE TABLE rpg_trabalho_bd.guildas (id INTEGER PRIMARY KEY, nome TEXT, nivel_minimo INTEGER, data_fundacao TEXT)');
         DB::statement("CREATE TABLE rpg_trabalho_bd.aventureiros (id INTEGER PRIMARY KEY, nickname TEXT UNIQUE, classe TEXT, nivel INTEGER, guilda_id INTEGER, senha TEXT, role TEXT NOT NULL DEFAULT 'jogador')");
@@ -80,8 +82,7 @@ class GuildDashboardTest extends TestCase
             return $cripta->guild_attempts_count === 1 && $cripta->guild_successes_count === 1
                 && $torre->guild_attempts_count === 1 && $torre->guild_successes_count === 0;
         });
-        $this->get('/?guilda=2')->assertOk()->assertViewHas('dungeons', fn ($dungeons) =>
-            $dungeons->firstWhere('id', 1)->guild_attempts_count === 0
+        $this->get('/?guilda=2')->assertOk()->assertViewHas('dungeons', fn ($dungeons) => $dungeons->firstWhere('id', 1)->guild_attempts_count === 0
             && $dungeons->firstWhere('id', 2)->guild_successes_count === 1);
     }
 
@@ -150,7 +151,7 @@ class GuildDashboardTest extends TestCase
         $admin = Aventureiro::findOrFail(1);
         $admin->update(['role' => 'admin']);
         $this->actingAs($admin);
-        $this->postJson('/api/quests', ['aventureiro_id' => 1, 'dungeon_id' => 2, 'data_quest' => '2026-10-01', 'sucesso' => true])
+        $this->postJson('/api/admin/quests', ['aventureiro_id' => 1, 'dungeon_id' => 2, 'data_quest' => '2026-10-01', 'sucesso' => true])
             ->assertCreated()->assertJsonPath('data.dungeon_id', 2)->assertJsonPath('data.data_quest', '2026-10-01')
             ->assertJsonPath('data.dungeon.nome', 'Torre Esquecida');
         $this->assertSame(4, Quest::count());

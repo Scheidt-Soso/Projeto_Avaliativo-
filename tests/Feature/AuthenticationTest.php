@@ -33,10 +33,10 @@ class AuthenticationTest extends TestCase
         $this->get('/?guilda=1')->assertRedirect(route('login'));
         $this->get('/aventureiros')->assertRedirect(route('login'));
         $this->post('/guildas/1/expedicao/selecionar', ['aventureiro_id' => 1, 'dungeon_id' => 1])->assertRedirect(route('login'));
-        foreach (['guildas', 'aventureiros', 'dungeons', 'quests'] as $recurso) {
-            $this->getJson('/api/'.$recurso)->assertStatus($recurso === 'dungeons' ? 200 : 401);
-            $this->postJson('/api/'.$recurso, [])->assertUnauthorized();
-        }
+        $this->getJson('/api/dungeons')->assertOk();
+        $this->getJson('/api/jogador/guildas')->assertUnauthorized();
+        $this->postJson('/api/admin/guildas', [])->assertUnauthorized();
+        $this->getJson('/api/guildas')->assertNotFound();
     }
 
     public function test_formularios_publicos_estao_disponiveis(): void
@@ -150,12 +150,12 @@ class AuthenticationTest extends TestCase
 
     public function test_jogador_consulta_api_mas_nao_altera_cadastros(): void
     {
-        $this->actingAs($this->jogador)->getJson('/api/aventureiros')->assertOk()->assertJsonMissingPath('data.0.senha');
+        $this->actingAs($this->jogador)->getJson('/api/jogador/aventureiros')->assertOk()->assertJsonMissingPath('data.0.senha');
         foreach (['guildas', 'aventureiros', 'dungeons', 'quests'] as $recurso) {
-            $this->postJson('/api/'.$recurso, [])->assertForbidden();
+            $this->postJson('/api/admin/'.$recurso, [])->assertForbidden();
         }
-        $this->putJson('/api/aventureiros/1', ['role' => 'admin'])->assertForbidden();
-        $this->deleteJson('/api/guildas/1')->assertForbidden();
+        $this->putJson('/api/admin/aventureiros/1', ['role' => 'admin'])->assertForbidden();
+        $this->deleteJson('/api/admin/guildas/1')->assertForbidden();
         $this->assertSame(1, Aventureiro::count());
         $this->assertSame('jogador', $this->jogador->fresh()->role);
     }
@@ -163,7 +163,7 @@ class AuthenticationTest extends TestCase
     public function test_admin_do_banco_pode_usar_crud_e_usuario_autenticado_nao_reabre_login(): void
     {
         $this->jogador->update(['role' => 'admin']);
-        $this->actingAs($this->jogador)->postJson('/api/guildas', ['nome' => 'Nova Bandeira', 'nivel_minimo' => 1])->assertCreated();
+        $this->actingAs($this->jogador)->postJson('/api/admin/guildas', ['nome' => 'Nova Bandeira', 'nivel_minimo' => 1])->assertCreated();
         $this->get('/login')->assertRedirect(route('guildas.dashboard'));
         $this->get('/register')->assertRedirect(route('guildas.dashboard'));
     }
