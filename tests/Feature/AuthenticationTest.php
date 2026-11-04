@@ -20,6 +20,7 @@ class AuthenticationTest extends TestCase
         DB::statement("ATTACH DATABASE ':memory:' AS rpg_trabalho_bd");
         DB::statement('CREATE TABLE rpg_trabalho_bd.guildas (id INTEGER PRIMARY KEY, nome TEXT, nivel_minimo INTEGER, data_fundacao TEXT)');
         DB::statement("CREATE TABLE rpg_trabalho_bd.aventureiros (id INTEGER PRIMARY KEY, nickname TEXT UNIQUE NOT NULL, classe TEXT NOT NULL, nivel INTEGER DEFAULT 1, guilda_id INTEGER, senha TEXT, role TEXT NOT NULL DEFAULT 'jogador' CHECK (role IN ('jogador', 'admin')))");
+        DB::statement('CREATE TABLE rpg_trabalho_bd.dungeons (id INTEGER PRIMARY KEY, nome TEXT, dificuldade TEXT, xp_recompensa INTEGER)');
         Guilda::create(['nome' => 'Lâminas Rubras', 'nivel_minimo' => 1]);
         $this->jogador = Aventureiro::create([
             'nickname' => 'Sentinela', 'classe' => 'Guerreiro', 'nivel' => 12,
