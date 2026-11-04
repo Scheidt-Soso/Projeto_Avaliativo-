@@ -1,5 +1,6 @@
 set search_path to rpg_trabalho_bd;
 
+--trigger que protege a recompensa de uma dungeon se ela tiver quests registradas
 create or replace function fn_trg_proteger_recompensa_dungeon()
 returns trigger
 language plpgsql

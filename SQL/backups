@@ -1,0 +1,38 @@
+cd C:\Backups\RPG
+
+-- Executando o backup via cmd
+pg_dump -Fc -v `
+    -h "ep-icy-sky-acmlavdi.sa-east-1.aws.neon.tech" `
+    -p 5432 `
+    -U "neondb_owner" `
+    -d "rpg_trabalho_bd" `
+    -W `
+    -f ".\backup_rpg_2026-11-04.dump"
+
+-- Conferindo
+Get-Item .\backup_rpg_2026-11-04.dump |
+    Select-Object Name, Length, LastWriteTime
+
+-- Criando um banco novo
+create database rpg_backup_teste_20261104;
+
+-- Restaurando
+pg_restore -v `
+    --exit-on-error `
+    --no-owner `
+    --no-acl `
+    -h "ep-icy-sky-acmlavdi.sa-east-1.aws.neon.tech" `
+    -p 5432 `
+    -U "neondb_owner" `
+    -d "rpg_backup_teste_20261104" `
+    -W `
+    ".\backup_rpg_2026-11-04.dump"
+
+-- Conferindo (executado em ambas bases de dados)
+
+select
+    current_database() as banco,
+    (select count(*) from rpg_trabalho_bd.aventureiros) as aventureiros,
+    (select count(*) from rpg_trabalho_bd.guildas) as guildas,
+    (select count(*) from rpg_trabalho_bd.dungeons) as dungeons,
+    (select count(*) from rpg_trabalho_bd.quests) as quests;
