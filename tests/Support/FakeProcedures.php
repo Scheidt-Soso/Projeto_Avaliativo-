@@ -11,6 +11,11 @@ use Illuminate\Validation\ValidationException;
 /** Test double used only by the SQLite HTTP suite. Native SQL is tested separately. */
 class FakeProcedures extends ProcedureService
 {
+    public function dataAtual(): string
+    {
+        return now()->toDateString();
+    }
+
     public function registrarQuest(int $aventureiroId, int $dungeonId, string $dataQuest, bool $sucesso): object
     {
         $quest = Quest::create(['aventureiro_id' => $aventureiroId, 'dungeon_id' => $dungeonId, 'data_quest' => $dataQuest, 'sucesso' => $sucesso]);

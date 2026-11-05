@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Random\Engine;
+use Random\Randomizer;
 use Tests\TestCase;
 
 class PostgreSqlRulesTest extends TestCase
@@ -203,6 +205,31 @@ class PostgreSqlRulesTest extends TestCase
             $this->assertFalse($dungeons[$dungeonId]->quests->first()->sucesso);
             $this->assertSame($this->aventureiro->nickname, $dungeons[$dungeonId]->quests->first()->aventureiro->nickname);
         }
+    }
+
+    public function test_expedicao_sorteada_usa_procedure_real_e_nao_sorteia_ao_reenviar(): void
+    {
+        $this->actingAs($this->aventureiro);
+        $this->app->instance(Randomizer::class, new Randomizer(new class implements Engine {
+            public function generate(): string { return str_repeat("\xff", 8); }
+        }));
+        $dados = ['dungeon_id' => $this->dungeon->id, 'submission_token' => (string) Str::uuid()];
+        $this->post('/expedicoes', $dados)->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertSame(2, $this->aventureiro->fresh()->nivel);
+        $this->assertTrue($this->aventureiro->quests()->firstOrFail()->sucesso);
+        $this->assertSame(DB::selectOne('SELECT CURRENT_DATE AS data')->data, $this->aventureiro->quests()->firstOrFail()->data_quest);
+        $this->post('/expedicoes', $dados)->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertSame(1, $this->aventureiro->quests()->count());
+        $this->assertSame(1500, (int) app(ProcedureService::class)->progresso($this->aventureiro->id)->xp_total);
+        $this->app->instance(Randomizer::class, new Randomizer(new class implements Engine {
+            public function generate(): string { return str_repeat("\x00", 8); }
+        }));
+        $this->post('/expedicoes', ['dungeon_id' => $this->dungeon->id, 'submission_token' => (string) Str::uuid()])
+            ->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertSame(2, $this->aventureiro->quests()->count());
+        $this->assertSame(1, $this->aventureiro->quests()->where('sucesso', false)->count());
+        $this->assertSame(1500, (int) app(ProcedureService::class)->progresso($this->aventureiro->id)->xp_total);
+        $this->assertSame(2, $this->aventureiro->fresh()->nivel);
     }
 
     private function rejeita(callable $operacao, string $trecho): void

@@ -15,6 +15,7 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::post('/expedicoes', [\App\Http\Controllers\Web\ExpedicaoController::class, 'store'])->middleware('throttle:30,1')->name('expedicoes.store');
     Route::get('/perfil', [\App\Http\Controllers\Web\PerfilController::class, 'show'])->name('perfil.show');
     Route::get('/relatorios', [\App\Http\Controllers\Web\RelatorioController::class, 'index'])->name('relatorios.index');
     Route::post('/relatorios/atualizar', [\App\Http\Controllers\Web\RelatorioController::class, 'atualizar'])->middleware('can:gerenciar-cadastros')->name('relatorios.atualizar');

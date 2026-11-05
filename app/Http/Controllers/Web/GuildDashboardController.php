@@ -7,6 +7,7 @@ use App\Models\Guilda;
 use App\Models\Aventureiro;
 use App\Models\Dungeon;
 use App\Services\GuildDashboardService;
+use App\Services\ExpedicaoService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -14,7 +15,7 @@ use Illuminate\View\View;
 
 class GuildDashboardController extends Controller
 {
-    public function __construct(private GuildDashboardService $dashboard) {}
+    public function __construct(private GuildDashboardService $dashboard, private ExpedicaoService $expedicoes) {}
 
     public function index(Request $request): View|RedirectResponse
     {
@@ -39,6 +40,7 @@ class GuildDashboardController extends Controller
 
         return view('guildas.dashboard', $dashboard + [
             'destino' => $destino,
+            'resultadoExpedicao' => $this->expedicoes->resultado($request->user(), $request->session()->get('expedicao_resultado_id')),
         ]);
     }
 

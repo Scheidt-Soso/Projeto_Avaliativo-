@@ -25,7 +25,7 @@ class QuestService extends CrudService
         return DB::transaction(function () use ($dados) {
             $progresso = $this->procedures->registrarQuest(
                 (int) $dados['aventureiro_id'], (int) $dados['dungeon_id'],
-                $dados['data_quest'] ?? now()->toDateString(), (bool) $dados['sucesso'],
+                $dados['data_quest'] ?? $this->procedures->dataAtual(), (bool) $dados['sucesso'],
             );
 
             $quest = $this->query()->findOrFail($progresso->quest_id);

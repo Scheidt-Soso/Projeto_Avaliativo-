@@ -9,6 +9,7 @@ use App\Services\PerfilService;
 use App\Services\ProcedureService;
 use App\Services\QuestService;
 use App\Services\SubmissionService;
+use App\Services\ExpedicaoService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -19,10 +20,13 @@ class PerfilController extends Controller
 {
     public function __construct(private PerfilService $perfil, private ProcedureService $procedures, private QuestService $quests, private SubmissionService $submissoes) {}
 
-    public function show(Request $request): View
+    public function show(Request $request, ExpedicaoService $expedicoes): View
     {
         $filtros = $request->validate(['dungeon' => ['nullable', 'integer', Rule::exists(Dungeon::class, 'id')]]);
-        return view('jogador.perfil', $this->perfil->dados($request->user()) + ['dungeonSelecionada' => $filtros['dungeon'] ?? null]);
+        return view('jogador.perfil', $this->perfil->dados($request->user()) + [
+            'dungeonSelecionada' => $filtros['dungeon'] ?? null,
+            'resultadoExpedicao' => $expedicoes->resultado($request->user(), $request->session()->get('expedicao_resultado_id')),
+        ]);
     }
 
     public function vincularGuilda(Request $request): RedirectResponse

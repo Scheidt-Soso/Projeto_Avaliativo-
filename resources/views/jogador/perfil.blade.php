@@ -13,8 +13,23 @@
         <section class="panel profile-panel" id="expedicoes" aria-labelledby="profile-quest-title"><div class="panel-heading"><h2 id="profile-quest-title"><x-pixel-icon name="door" /> SUAS EXPEDIÇÕES</h2></div><div class="profile-panel-content">
             @php($destinoConsultado = $dungeons->firstWhere('id', $dungeonSelecionada))
             <h3>{{ $destinoConsultado?->nome ?? 'Cada retorno deixa uma história.' }}</h3>
-            <p>O administrador registra o resultado de cada expedição. Seu XP e nível são atualizados a partir dos resultados registrados.</p>
+            <p>Escolha uma dungeon e explore. O resultado é sorteado com 50% de chance de sucesso; uma vitória concede o XP da dungeon e atualiza seu nível.</p>
             @if($destinoConsultado)<p>Destino escolhido · {{ $destinoConsultado->dificuldade ?: 'Sem classificação' }} · {{ number_format($destinoConsultado->xp_recompensa, 0, ',', '.') }} XP em caso de sucesso.</p>@endif
+            @if($resultadoExpedicao)<x-expedition-result :quest="$resultadoExpedicao" />@endif
+            @if($dungeons->isNotEmpty())
+                <form method="post" action="{{ route('expedicoes.store') }}" data-explore-form>
+                    @csrf
+                    <input type="hidden" name="submission_token" value="{{ (string) \Illuminate\Support\Str::uuid() }}">
+                    <label for="profile-dungeon">Dungeon</label>
+                    <select id="profile-dungeon" name="dungeon_id" required>
+                        <option value="">Escolha seu próximo destino</option>
+                        @foreach($dungeons as $item)<option value="{{ $item->id }}" @selected(old('dungeon_id', $dungeonSelecionada) == $item->id)>{{ $item->nome }} · {{ $item->dificuldade ?: 'Sem classificação' }} · {{ number_format($item->xp_recompensa, 0, ',', '.') }} XP</option>@endforeach
+                    </select>
+                    <button class="primary-action" type="submit"><span>EXPLORAR DUNGEON</span><x-pixel-icon name="door" /></button>
+                </form>
+            @else
+                <p class="empty-copy">Nenhuma dungeon foi cadastrada.</p>
+            @endif
             @can('gerenciar-cadastros')
                 <a class="primary-action" href="{{ route('cadastros.quests.create', array_filter(['aventureiro_id' => $aventureiro->id, 'dungeon_id' => $destinoConsultado?->id])) }}"><span>REGISTRAR RESULTADO</span><x-pixel-icon name="check" /></a>
             @else

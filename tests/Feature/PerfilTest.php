@@ -55,10 +55,10 @@ class PerfilTest extends TestCase
         $this->assertSame('jogador', Aventureiro::findOrFail(2)->role);
     }
 
-    public function test_perfil_exibe_destino_apenas_para_consulta_e_link_administrativo_so_para_admin(): void
+    public function test_perfil_permite_explorar_sem_escolher_resultado_e_link_manual_so_para_admin(): void
     {
         $this->get('/perfil?dungeon=1')->assertOk()->assertSee('Caverna Certa')
-            ->assertSee('O administrador registra o resultado')->assertDontSee('name="sucesso"', false)
+            ->assertSee('EXPLORAR DUNGEON')->assertSee('50% de chance de sucesso')->assertDontSee('name="sucesso"', false)
             ->assertDontSee(route('cadastros.quests.create'), false);
         Aventureiro::findOrFail(2)->update(['role' => 'admin']);
         $this->actingAs(Aventureiro::findOrFail(2))->get('/perfil?dungeon=1')->assertOk()

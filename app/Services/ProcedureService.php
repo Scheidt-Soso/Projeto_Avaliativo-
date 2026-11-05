@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\DB;
 
 class ProcedureService
 {
+    public function dataAtual(): string
+    {
+        return DB::selectOne('SELECT CURRENT_DATE AS data')->data;
+    }
+
     public function registrarQuest(int $aventureiroId, int $dungeonId, string $dataQuest, bool $sucesso): object
     {
         return DB::transaction(function () use ($aventureiroId, $dungeonId, $dataQuest, $sucesso) {

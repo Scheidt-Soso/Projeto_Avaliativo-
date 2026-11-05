@@ -33,6 +33,9 @@
             <p class="empty-copy">{{ auth()->user()->can('gerenciar-cadastros') ? 'Esta guilda ainda não possui aventureiros para uma expedição.' : 'Seu aventureiro ainda não faz parte desta guilda.' }}</p>
             <a class="text-link" href="{{ route('perfil.show') }}">Abrir meu aventureiro ↗</a>
         @endif
+        @if ($resultadoExpedicao)
+            <x-expedition-result :quest="$resultadoExpedicao" />
+        @endif
         @if ($destino)
             <div class="dungeon-selection" tabindex="-1" @if(session('destino_selecionado')) data-new-selection @endif>
                 <p class="field-label">DESTINO DE {{ $destino['aventureiro']->nickname }}</p>
@@ -48,12 +51,18 @@
                         <p class="selection-hint">Sem expedições registradas para este aventureiro nesta dungeon.</p>
                     @endif
                 </div>
-                <p class="selection-hint">Destino preparado. O administrador registra o resultado da quest para atualizar o XP e o nível.</p>
-                @can('gerenciar-cadastros')
+                @if($destino['aventureiro']->id === auth()->id())
+                    <p class="selection-hint">Entre na dungeon. O resultado é sorteado ao explorar: 50% de chance de sucesso. Uma vitória concede {{ number_format($destino['dungeon']->xp_recompensa, 0, ',', '.') }} XP.</p>
+                    <form method="post" action="{{ route('expedicoes.store') }}" data-explore-form>
+                        @csrf
+                        <input type="hidden" name="dungeon_id" value="{{ $destino['dungeon']->id }}">
+                        <input type="hidden" name="submission_token" value="{{ (string) \Illuminate\Support\Str::uuid() }}">
+                        <button class="primary-action" type="submit"><x-pixel-icon name="door" /><span>EXPLORAR DUNGEON</span><x-pixel-icon name="arrow" /></button>
+                    </form>
+                @elseif(auth()->user()->can('gerenciar-cadastros'))
                     <a class="secondary-action" href="{{ route('cadastros.quests.create', ['aventureiro_id' => $destino['aventureiro']->id, 'dungeon_id' => $destino['dungeon']->id]) }}">REGISTRAR RESULTADO <x-pixel-icon name="arrow" /></a>
-                @else
-                    <a class="secondary-action" href="{{ route('perfil.show', ['dungeon' => $destino['dungeon']->id]) }}#expedicoes">ACOMPANHAR EXPEDIÇÕES <x-pixel-icon name="arrow" /></a>
-                @endcan
+                @endif
+                <a class="text-link expedition-history-link" href="{{ route('perfil.show', ['dungeon' => $destino['dungeon']->id]) }}#suas-expedicoes">ACOMPANHAR EXPEDIÇÕES ↗</a>
             </div>
         @endif
         <button class="atlas-open" type="button" data-open-atlas><x-pixel-icon name="book" /> CONSULTAR ATLAS <span>{{ $dungeons->count() }} DESTINOS</span></button>
