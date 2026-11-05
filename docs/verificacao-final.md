@@ -4,9 +4,9 @@ Atualizações de API, testes e instruções de backup da equipe incorporadas a 
 
 ## Resultados de dungeons
 
-O administrador registra sucesso ou falha em **Quests → Novo registro**, pelo atalho no quartel ou pela API administrativa. A procedure original calcula XP e nível. A seleção de destino continua explícita e não altera o progresso.
+O jogador escolhe a dungeon e clica em **Explorar dungeon**. O servidor sorteia sucesso/falha com 50% de chance de sucesso, obtém a data do próprio banco e chama a procedure original para registrar a quest, calcular XP e atualizar o nível. O feedback mostra resultado, recompensa e nível atual. A seleção de destino continua explícita e, sozinha, não altera o progresso. Administradores mantêm o cadastro manual apenas como ferramenta de manutenção do histórico.
 
-O jogador consulta dungeons e histórico, prepara seu próprio destino e vincula sua conta a uma guilda compatível. Não há formulário de resultado no perfil. Tentativas de gravação pelo perfil, pelo cadastro web, pelos endpoints antigos de jogador ou pela API administrativa são bloqueadas antes de alterar o banco. Campos forjados de papel, nível e XP não concedem permissões.
+O jogador também pode explorar pelo perfil, mesmo sem guilda. O novo envio recebe somente dungeon e token; conta, resultado e progresso são determinados no servidor. Reenvios retornam a mesma quest sem novo sorteio ou XP duplicado, e um token não pode trocar de destino. O registro manual de resultado pelos endpoints antigos e o CRUD administrativo continuam protegidos. Campos forjados de resultado, data, conta, papel, nível e XP são rejeitados no fluxo de exploração.
 
 Na tela inicial, **Consultar atlas → nome da dungeon** abre sucessos e falhas recentes da guilda, com data, aventureiro e acesso à quest. Os totais incluem todo o histórico dos membros atuais; os detalhes são limitados aos cinco registros mais recentes de cada dungeon. O destino selecionado mostra o último resultado específico do aventureiro escolhido. Sem quests correspondentes, a tela informa ausência de registros.
 
@@ -18,14 +18,15 @@ A conta administrativa existente possui hash bcrypt, conferido em consulta somen
 
 ## Validação executada
 
-- 83 testes HTTP/unitários aprovados, com 546 verificações: autenticação, permissões, CRUD, perfil, relatórios, seleção de destino e exibição dos resultados corretos por dungeon, aventureiro e guilda.
-- 11 testes no PostgreSQL local aprovados, com 112 verificações: procedures, triggers, cascatas, rollback, login administrativo web/API, acesso aos quatro cadastros e cinco relatórios, registro de sucesso/falha, logout, bloqueio de gravação por jogador e limite de cinco resultados recentes por dungeon.
+- 92 testes HTTP/unitários aprovados, com 622 verificações: autenticação, permissões, CRUD, perfil, relatórios, escolha de destino, sorteio de vitória/falha, rejeição de resultado forjado, reenvio sem duplicação e separação de resultados por conta.
+- 12 testes no PostgreSQL local aprovados, com 127 verificações: procedures, triggers, cascatas, rollback, login administrativo, relatórios, histórico e expedições sorteadas usando a procedure real e a data do banco.
+- Checagem HTTP com sessão e CSRF na cópia local: exploração com gerador real, feedback de resultado e repetição do envio sem criar uma segunda quest.
 - Build de produção aprovado.
 - As contas de teste são revertidas; os testes não gravam no Neon.
 
 ## Limites e próximos cuidados
 
-Esta conferência valida as respostas HTTP e o comportamento do banco. Não substitui a revisão visual no navegador em diferentes tamanhos de tela.
+Esta conferência valida as respostas HTTP e o comportamento do banco. Os seletores foram substituídos por listas pesquisáveis em preto e branco, com suporte a teclado e cores explícitas no fallback nativo. A revisão visual automática pelo Computer Use foi interrompida porque a ferramenta não conseguiu confirmar a URL do navegador; a validação visual em diferentes tamanhos de tela continua pendente.
 
 O ambiente usa o schema original já existente. Não execute migrations ou restauração sobre o banco compartilhado para iniciar o site. Para uma instalação em banco vazio, o arquivo único `SQL/projeto_completo.sql` agora prepara toda a estrutura e os dados, sem senhas/tokens/sessões. O snapshot antigo em `database/schema/rpg_trabalho_bd.sql` continua sendo uma exportação apenas de estrutura para `psql`, não uma migration Laravel.
 

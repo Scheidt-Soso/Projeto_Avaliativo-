@@ -34,7 +34,9 @@ CRUD web e API de guildas, aventureiros, dungeons e quests, com validação e pe
 
 ## Registro de expedições
 
-Somente administradores registram dungeon, data e resultado pelo cadastro de quests ou pela API administrativa. Jogadores escolhem seu destino e consultam o histórico; tentativas de registrar sucesso ou falha pelo perfil ou pela API retornam 403, sem alterar quests, XP ou nível. A procedure recebe o resultado informado pelo administrador e aplica a progressão original; não existe regra automática de vitória no banco. O formulário impede reenvio duplicado por token. As rotinas usam nomes sem schema no corpo, por isso o service configura `SET LOCAL search_path TO rpg_trabalho_bd, public` na mesma transação antes do `CALL`.
+Jogadores escolhem seu destino e usam **Explorar dungeon** para iniciar uma expedição. A aplicação sorteia sucesso/falha no servidor com probabilidade de 50% e envia esse resultado à procedure original. A data usa `CURRENT_DATE` do banco; o cliente não pode definir conta, resultado, data ou XP. A procedure registra a quest e aplica a progressão original. O sorteio fica na aplicação: o schema original não foi alterado para acrescentar regras de probabilidade.
+
+Administradores mantêm o CRUD para corrigir o histórico. Tentativas de jogadores de registrar manualmente sucesso/falha pelos endpoints antigos continuam bloqueadas; o novo fluxo autenticado recebe somente dungeon e token. O token e o bloqueio de reenvio impedem novo sorteio e duplicação de XP para a mesma submissão. As rotinas usam nomes sem schema no corpo, por isso o service configura `SET LOCAL search_path TO rpg_trabalho_bd, public` na mesma transação antes do `CALL`.
 
 O recálculo do banco pode reduzir um nível antigo que não corresponda ao XP registrado. O formulário informa que o nível será recalculado a partir do histórico completo; a preparação do destino continua sem alterar o nível.
 

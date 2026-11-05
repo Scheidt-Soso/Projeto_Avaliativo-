@@ -22,19 +22,23 @@ O cadastro integrado da `feature/dudu` cria um aventureiro com senha protegida p
 | GET / POST | `/register` | Formulário e cadastro de aventureiro. |
 | POST | `/logout` | Encerra a sessão, com proteção CSRF. |
 
-O painel e os cadastros exigem login. A API aceita sessão do site por Sanctum ou token emitido em `/api/login`; `/api/user` devolve a conta sem a senha. O catálogo `GET /api/dungeons` é público. Jogadores usam `/api/jogador/*` para consultar cadastros e vincular o próprio aventureiro a uma guilda. Administradores usam `/api/admin/*` para criar, editar e excluir os quatro tipos de registro, incluindo os resultados das quests. Não existem rotas genéricas `/api/{recurso}`. O papel vem do banco (`admin` ou `jogador`); o cadastro público cria apenas jogadores. Para outro domínio/porta, configure `SANCTUM_STATEFUL_DOMAINS` e envie os cookies e o token CSRF.
+O painel e os cadastros exigem login. A API aceita sessão do site por Sanctum ou token emitido em `/api/login`; `/api/user` devolve a conta sem a senha. O catálogo `GET /api/dungeons` é público. Jogadores usam `/api/jogador/*` para consultar cadastros, vincular o próprio aventureiro a uma guilda e explorar dungeons com resultado sorteado no servidor. Administradores usam `/api/admin/*` para criar, editar e excluir os quatro tipos de registro, incluindo a manutenção do histórico de quests. Não existem rotas genéricas `/api/{recurso}`. O papel vem do banco (`admin` ou `jogador`); o cadastro público cria apenas jogadores. Para outro domínio/porta, configure `SANCTUM_STATEFUL_DOMAINS` e envie os cookies e o token CSRF.
 
 ## Cadastros, perfil e relatórios
 
 As páginas `/cadastros/guildas`, `/cadastros/aventureiros`, `/cadastros/dungeons` e `/cadastros/quests` possuem listagem, busca, filtros, paginação, ficha, criação, edição e exclusão. Alterações exigem administrador. A exclusão mostra os efeitos sobre registros relacionados e exige digitar o nome do registro. Formulários de criação usam um identificador para evitar duplicação por reenvio. Uma conta administrativa não pode excluir ou rebaixar a si mesma durante a sessão.
 
-Em `/perfil`, cada pessoa vê seu aventureiro, XP e histórico e pode entrar em uma guilda compatível com o nível. A dungeon é escolhida explicitamente no quartel. **Somente administradores registram, corrigem ou excluem resultados de quests.** Jogadores não escolhem sucesso ou falha nem alteram XP/nível pelo perfil ou pela API, mesmo enviando campos forjados. O botão administrativo abre o cadastro de quests com aventureiro e dungeon preenchidos.
+Em `/perfil`, cada pessoa vê seu aventureiro, XP e histórico, pode entrar em uma guilda compatível com o nível e explorar uma dungeon, mesmo ainda sem guilda. No quartel, o fluxo é **escolher destino → explorar dungeon → ver sucesso/falha e XP**. O servidor sorteia o resultado com 50% de chance de sucesso usando o gerador seguro do PHP e chama a procedure original para registrar a quest e recalcular o nível. Uma vitória concede o XP cadastrado da dungeon; uma falha registra a tentativa sem conceder XP. A expedição do jogador não depende do administrador.
+
+`POST /expedicoes`, `POST /api/jogador/expedicoes` e `POST /api/admin/expedicoes` recebem apenas `dungeon_id` e `submission_token`. A conta autenticada define o aventureiro. Resultado, data, nível, XP e papel enviados pelo cliente são rejeitados. A data é obtida do próprio banco para respeitar sua validação de datas futuras. Reenviar o mesmo token devolve a mesma quest sem novo sorteio ou XP duplicado; o token não pode ser reutilizado para outra dungeon. O CRUD administrativo continua disponível para manutenção e correção do histórico.
 
 O registro de quests usa `pr_registrar_quest`. Correções e exclusões recalculam os níveis envolvidos com as funções do banco. Vínculos de guilda usam `pr_vincular_aventureiro_guilda`; as triggers preservam os requisitos de nível e a recompensa de dungeons já exploradas. As rotinas rodam em transações com `SET LOCAL search_path`, e o ranking materializado é atualizado após mudanças relevantes.
 
 Em `/relatorios`, as cinco views originais fornecem ranking de XP, vínculos de guildas, aventureiros sem quests, dungeons com XP acima da média e histórico de sucessos. Os relatórios têm busca e paginação; administradores podem atualizar o ranking manualmente. Perfil e relatórios estão no menu da conta.
 
 A tipografia foi ampliada: campos usam 16px, tabelas usam 15px e os textos auxiliares ganharam tamanho e contraste. A aparência monocromática e as animações permanecem.
+
+Os campos de seleção recebem listas escuras com busca sem distinção de acentos, navegação por teclado, nomes e metadados em linhas separadas e indicação da opção selecionada. As listas são exibidas acima de painéis e diálogos para evitar cortes; sem suporte a popover, o select nativo permanece disponível com cores explícitas. Busca, reset de filtros, opções desabilitadas e preenchimento pelo atlas continuam sincronizados com o formulário original.
 
 ## Feature 2: quartel de guildas em preto e branco
 
@@ -48,12 +52,13 @@ O elenco permite buscar por nome, combinar a classe e ordenar por nível, nome o
 
 O botão **Consultar atlas** mostra as dungeons do banco com dificuldade, recompensa e totais explícitos de sucessos e falhas da guilda atual. Clicar no nome de uma dungeon abre até cinco resultados recentes, com aventureiro, data, sucesso/falha e link para a quest. O destino escolhido também mostra o último resultado daquele aventureiro naquela dungeon, ou informa que ainda não há registro. É possível buscar, filtrar dificuldade, ordenar por XP e destacar destinos ainda não explorados. Esses números descrevem o histórico, não a chance de vitória futura.
 
-A preparação exige escolher explicitamente um aventureiro permitido e uma dungeon cadastrada, pelo formulário ou pelo atlas. O servidor valida os IDs e guarda a seleção na sessão; ao abrir o painel, consulta novamente os dados atuais. **Escolher um destino não registra uma quest nem muda o nível.** O administrador usa o botão de registrar resultado para abrir o formulário correspondente; a confirmação grava a quest e aplica a progressão original. O jogador acompanha o histórico. O banco recebe o resultado como parâmetro e não define sorteio ou probabilidade de vitória.
+A preparação exige escolher explicitamente um aventureiro permitido e uma dungeon cadastrada, pelo formulário ou pelo atlas. O servidor valida os IDs e guarda a seleção na sessão; ao abrir o painel, consulta novamente os dados atuais. **Escolher um destino não registra uma quest nem muda o nível.** O botão **Explorar dungeon** sorteia o resultado no servidor e registra a quest do próprio aventureiro. O banco recebe esse resultado como parâmetro e mantém sua progressão original; o sorteio de 50% pertence à aplicação, pois não existe cálculo de probabilidade no schema.
 
 | Método | Rota | Função |
 | --- | --- | --- |
 | GET | `/?guilda=1` | Painel da guilda e histórico real. Sem parâmetro, abre a primeira guilda. |
 | POST | `/guildas/{guilda}/expedicao/selecionar` | Salva a dungeon escolhida para um membro da guilda, com CSRF e validação dos dois IDs. |
+| POST | `/expedicoes` | Explora a dungeon escolhida, sorteia o resultado no servidor e registra a quest do usuário autenticado. |
 
 A estrutura atual de `quests` usa `dungeon_id` e `data_quest`; Models, API e Services foram ajustados a esses nomes. Consulte `docs/database-status.md` para os objetos encontrados no banco.
 
@@ -90,7 +95,7 @@ Abra http://127.0.0.1:8000. Para desenvolver com atualização dos assets, execu
 | GET | `/aventureiros` | Lista, busca, filtra e pagina os aventureiros do protótipo anterior. |
 | POST | `/aventureiro/selecionar` | Valida `aventureiro_id` e salva a escolha na sessão, com proteção CSRF. |
 
-A API usa apenas os prefixos `/api/jogador` e `/api/admin` para os cadastros; as antigas rotas genéricas `/api/{recurso}` foram removidas. Consultas de dungeons são públicas. Jogadores só alteram seus próprios vínculos; administradores têm o CRUD completo. O registro de quests pela procedure fica em `POST /api/admin/quests/registrar`. O vínculo usa `POST /api/jogador/aventureiros/{id}/guilda` ou `POST /api/admin/aventureiros/{id}/guilda`. As antigas tentativas de escrita em `POST /api/jogador/quests`, `POST /api/jogador/quests/registrar` e `POST /perfil/quests` por jogadores retornam **403** antes de gravar ou recalcular qualquer progresso.
+A API usa apenas os prefixos `/api/jogador` e `/api/admin` para os cadastros; as antigas rotas genéricas `/api/{recurso}` foram removidas. Consultas de dungeons são públicas. Jogadores alteram seus próprios vínculos e exploram dungeons em `POST /api/jogador/expedicoes`, com sorteio no servidor; administradores têm o CRUD completo. O registro manual de quests pela procedure fica em `POST /api/admin/quests/registrar`. O vínculo usa `POST /api/jogador/aventureiros/{id}/guilda` ou `POST /api/admin/aventureiros/{id}/guilda`. As antigas tentativas de definir manualmente um resultado em `POST /api/jogador/quests`, `POST /api/jogador/quests/registrar` e `POST /perfil/quests` por jogadores continuam retornando **403**.
 
 Para acompanhar as alterações ao vivo, mantenha `php artisan serve` e `npm run dev -- --host 127.0.0.1` abertos em terminais separados.
 
