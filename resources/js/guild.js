@@ -1,8 +1,10 @@
 import { mountGuildScene } from './guild-scene';
 import { mountMemberRoster } from './member-roster';
 import { mountDungeonAtlas } from './dungeon-atlas';
+import { mountSelectFields } from './select-fields';
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const cleanupSelects = mountSelectFields();
 const canvas = document.querySelector('#guild-scene');
 const motionButton = document.querySelector('[data-motion-toggle]');
 let paused = localStorage.getItem('guild-motion-paused') === 'true';
@@ -37,9 +39,10 @@ document.querySelectorAll('[data-select-dungeon]').forEach((button) => {
     button.hidden = false;
     button.addEventListener('click', () => {
         select.value = button.dataset.selectDungeon;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
         atlasDialog.close();
         document.querySelector('#expedicoes')?.scrollIntoView({ behavior: paused || reducedMotion.matches ? 'instant' : 'smooth', block: 'center' });
-        select.focus({ preventScroll: true });
+        select.parentElement.querySelector('.choice-trigger')?.focus({ preventScroll: true });
     });
 });
 document.querySelectorAll('[data-close-dialog]').forEach((button) => button.addEventListener('click', () => button.closest('dialog').close()));
@@ -60,25 +63,30 @@ document.querySelectorAll('[data-member-id]').forEach((button) => button.addEven
         const target = memberDialog?.querySelector(`[data-detail-${field}]`);
         if (target) target.textContent = button.dataset[`member${field[0].toUpperCase()}${field.slice(1)}`];
     });
+    const choose = memberDialog?.querySelector('[data-choose-member]');
+    const memberSelect = document.querySelector('#expedition-member');
+    if (choose) choose.hidden = ![...(memberSelect?.options ?? [])].some((option) => option.value === selectedMemberId);
     memberDialog?.showModal();
 }));
 document.querySelector('[data-choose-member]')?.addEventListener('click', () => {
     const select = document.querySelector('#expedition-member');
-    if (select) select.value = selectedMemberId;
+    if (select) { select.value = selectedMemberId; select.dispatchEvent(new Event('change', { bubbles: true })); }
     memberDialog.close();
     document.querySelector('#expedicoes')?.scrollIntoView({ behavior: paused || reducedMotion.matches ? 'instant' : 'smooth', block: 'center' });
-    select?.focus({ preventScroll: true });
+    select?.parentElement.querySelector('.choice-trigger')?.focus({ preventScroll: true });
 });
 
 const loading = document.querySelector('.expedition-loading');
 let submitting = false;
-document.querySelectorAll('[data-expedition-form]').forEach((form) => {
+document.querySelectorAll('[data-expedition-form], [data-explore-form]').forEach((form) => {
     form.addEventListener('submit', (event) => {
         if (submitting) { event.preventDefault(); return; }
         submitting = true;
         form.querySelector('button[type="submit"]').disabled = true;
+        if (form.hasAttribute('data-explore-form')) form.querySelector('button[type="submit"] span').textContent = 'EXPLORANDO...';
         if (loading) {
-            loading.querySelector('p').textContent = 'SALVANDO DESTINO...';
+            loading.querySelector('p').textContent = form.hasAttribute('data-explore-form') ? 'EXPLORANDO DUNGEON...' : 'SALVANDO DESTINO...';
+            loading.querySelector('small').textContent = form.hasAttribute('data-explore-form') ? 'O PORTAL SE FECHA ATRÁS DE VOCÊ' : 'ANOTANDO O CAMINHO ESCOLHIDO';
             loading.hidden = false;
         }
     });
@@ -86,10 +94,13 @@ document.querySelectorAll('[data-expedition-form]').forEach((form) => {
 window.addEventListener('pageshow', () => {
     submitting = false;
     if (loading) loading.hidden = true;
-    document.querySelectorAll('[data-expedition-form] button').forEach((button) => { button.disabled = false; });
+    document.querySelectorAll('[data-expedition-form] button[type=submit], [data-explore-form] button[type=submit]').forEach((button) => {
+        button.disabled = false;
+        if (button.closest('[data-explore-form]')) button.querySelector('span').textContent = 'EXPLORAR DUNGEON';
+    });
 });
 
-const selectedDestination = document.querySelector('[data-new-selection]');
+const selectedDestination = document.querySelector('[data-expedition-outcome]') ?? document.querySelector('[data-new-selection]');
 if (selectedDestination) {
     selectedDestination.scrollIntoView({ behavior: paused || reducedMotion.matches ? 'instant' : 'smooth', block: 'center' });
     selectedDestination.focus({ preventScroll: true });
@@ -145,4 +156,4 @@ if (typewriter && !paused && !reducedMotion.matches) {
     typeNext();
     window.addEventListener('pagehide', () => clearTimeout(typewriterTimer), { once: true });
 }
-if (import.meta.hot) import.meta.hot.dispose(() => { cleanupScene(); cleanupRoster(); cleanupAtlas(); observer.disconnect(); clearTimeout(typewriterTimer); });
+if (import.meta.hot) import.meta.hot.dispose(() => { cleanupScene(); cleanupRoster(); cleanupAtlas(); cleanupSelects(); observer.disconnect(); clearTimeout(typewriterTimer); });

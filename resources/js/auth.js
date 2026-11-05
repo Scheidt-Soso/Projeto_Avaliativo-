@@ -1,4 +1,7 @@
 import { mountGuildScene } from './guild-scene';
+import { mountSelectFields } from './select-fields';
+
+const cleanupSelects = mountSelectFields();
 
 const canvas = document.querySelector('#auth-scene');
 const motionButton = document.querySelector('[data-auth-motion]');
@@ -61,4 +64,4 @@ window.addEventListener('pagehide', () => cleanupScene());
 window.addEventListener('pageshow', (event) => {
     if (event.persisted && canvas) cleanupScene = mountGuildScene(canvas);
 });
-if (import.meta.hot) import.meta.hot.dispose(() => cleanupScene());
+if (import.meta.hot) import.meta.hot.dispose(() => { cleanupScene(); cleanupSelects(); });
