@@ -9,9 +9,28 @@ use Illuminate\Support\Facades\Hash;
 
 class LoginService
 {
+    public function validarCredenciais(#[\SensitiveParameter] array $dados): ?Aventureiro
+    {
+        $aventureiro = Aventureiro::where('nickname', $dados['nickname'])->first();
+
+        if (! $aventureiro || ! Hash::check($dados['senha'], $aventureiro->senha)) {
+            return null;
+        }
+
+        return $aventureiro;
+    }
+
     public function authenticate(#[\SensitiveParameter] array $dados): bool
     {
-        return Auth::attempt(['nickname' => $dados['nickname'], 'password' => $dados['senha']]);
+        $aventureiro = $this->validarCredenciais($dados);
+
+        if (! $aventureiro) {
+            return false;
+        }
+
+        Auth::login($aventureiro);
+
+        return true;
     }
 
     public function classesDisponiveis(): Collection

@@ -3,39 +3,37 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Aventureiro;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
+use App\Services\LoginService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
-    public function register(Request $request): JsonResponse
-    {
-        $dados = $request->validate([
-            'nickname' => ['required', 'string', 'max:50', Rule::unique(Aventureiro::class, 'nickname')],
-            'classe' => ['required', 'string', 'max:50'],
-            'senha' => \App\Support\RecordRules::password(),
-        ]);
+    public function __construct(private LoginService $loginService) {}
 
-        return \Illuminate\Support\Facades\DB::transaction(function () use ($dados) {
-            $aventureiro = app(\App\Services\LoginService::class)->register($dados);
+    public function register(RegisterRequest $request): JsonResponse
+    {
+        $dados = $request->validated();
+
+        return DB::transaction(function () use ($dados) {
+            $aventureiro = $this->loginService->register($dados);
 
             return response()->json(['aventureiro' => $aventureiro, 'token' => $aventureiro->createToken('api')->plainTextToken], 201);
         });
     }
 
-    public function login(Request $request): JsonResponse
+    public function login(LoginRequest $request): JsonResponse
     {
-        $dados = $request->validate([
-            'nickname' => ['required', 'string', 'max:50'],
-            'senha' => ['required', 'string', 'max:255'],
-        ]);
+        $dados = $request->validated();
 
-        $aventureiro = Aventureiro::where('nickname', $dados['nickname'])->first();
+        $aventureiro = $this->loginService->validarCredenciais($dados);
 
-        if (! $aventureiro || ! Hash::check($dados['senha'], $aventureiro->senha)) {
+        if (! $aventureiro) {
             return response()->json(['message' => 'Credenciais inválidas.'], 401);
         }
 
@@ -48,10 +46,10 @@ class AuthController extends Controller
     public function logout(Request $request): JsonResponse
     {
         $token = $request->user()->currentAccessToken();
-        if ($token instanceof \Laravel\Sanctum\PersonalAccessToken) {
+        if ($token instanceof PersonalAccessToken) {
             $token->delete();
         } else {
-            \Illuminate\Support\Facades\Auth::guard('web')->logout();
+            Auth::guard('web')->logout();
             if ($request->hasSession()) {
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
