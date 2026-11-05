@@ -1,6 +1,6 @@
 # Conferência de 04/11/2026
 
-Atualizações de API, testes e instruções de backup da equipe incorporadas a partir da `main` em `270346f`.
+Atualizações da equipe incorporadas até a `main` em `1b3566b`, incluindo os FormRequests de login/cadastro da Sofia (`55c21b5`) e a reorganização do README. O conflito foi somente na documentação; a estrutura nova foi preservada com as instruções atuais de exploração e SQL único.
 
 ## Resultados de dungeons
 

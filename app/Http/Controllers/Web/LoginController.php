@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\Aventureiro;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
 use App\Services\LoginService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -22,15 +22,9 @@ class LoginController extends Controller
         return view('jogador.login');
     }
 
-    public function login(Request $request): RedirectResponse
+    public function login(LoginRequest $request): RedirectResponse
     {
-        $dados = $request->validate([
-            'nickname' => ['required', 'string', 'max:50'],
-            'senha' => ['required', 'string', 'max:255'],
-        ], [
-            'nickname.required' => 'Informe seu nickname.',
-            'senha.required' => 'Informe sua senha.',
-        ]);
+        $dados = $request->validated();
 
         $key = 'login:'.hash('sha256', mb_strtolower($dados['nickname']).'|'.$request->ip());
         if (RateLimiter::tooManyAttempts($key, 5)) {
@@ -55,26 +49,9 @@ class LoginController extends Controller
         return view('jogador.register', ['classes' => $this->loginService->classesDisponiveis()]);
     }
 
-    public function register(Request $request): RedirectResponse
+    public function register(RegisterRequest $request): RedirectResponse
     {
-        $dados = $request->validate([
-            'nickname' => ['required', 'string', 'max:50', Rule::unique(Aventureiro::class, 'nickname')],
-            'classe' => ['required', 'string', 'max:50'],
-            'senha' => ['bail', 'required', 'string', 'min:6', 'confirmed', function (string $attribute, mixed $value, \Closure $fail) {
-                if (strlen($value) > 72) {
-                    $fail('A senha é muito longa. Use uma senha mais curta.');
-                }
-            }],
-        ], [
-            'nickname.required' => 'Escolha seu nickname.',
-            'nickname.unique' => 'Este nickname já está em uso.',
-            'classe.required' => 'Escolha sua classe.',
-            'senha.required' => 'Escolha sua senha.',
-            'senha.min' => 'A senha precisa ter pelo menos 6 caracteres.',
-            'senha.confirmed' => 'A confirmação da senha não confere.',
-        ]);
-
-        $this->loginService->register($dados);
+        $this->loginService->register($request->validated());
 
         return to_route('login')->with('sucesso', 'Cadastro realizado. Entre com seu nickname e sua senha.');
     }
